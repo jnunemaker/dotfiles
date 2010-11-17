@@ -1,0 +1,91 @@
+alias reload='. ~/.bashrc'
+alias ea="$EDITOR ~/bin/dotfiles/bash/aliases && reload"
+alias ee="$EDITOR ~/bin/dotfiles/bash/env && reload"
+
+alias droid='say -v "Cellos"'
+
+# Bundler
+alias bx='bundle exec'
+alias bo='bundle open'
+alias bu='bundle update'
+
+# Processes
+alias tu='top -o cpu'
+alias tm='top -o vsize'
+
+alias code='cd ~/dev/ruby/code'
+alias repos='cd ~/dev/repos'
+alias proj='cd ~/dev/projects'
+alias clone='cd ~/dev/repos && git clone $1'
+
+# Projects
+alias harm='cd ~/Sites/harmony'
+alias harmm='open ~/Desktop/harmony.tmproj'
+alias mm='cd ~/dev/projects/mongomapper'
+alias mmm='open ~/Desktop/mongomapper.tmproj'
+alias ad='cd ~/dev/projects/adapter'
+alias adm='open ~/Desktop/adapter.tmproj'
+alias plu='cd ~/dev/projects/plucky'
+alias plum='open ~/Desktop/plucky.tmproj'
+alias joint='cd ~/dev/projects/joint'
+alias driver='cd ~/dev/ruby/code/mongo-ruby-driver/'
+alias driverm='mate ~/dev/ruby/code/mongo-ruby-driver/'
+
+# General
+alias l='ls -lah'
+alias h='history'
+alias c='clear'
+alias o='open .'
+alias e='mate .'
+alias tf='tail -f -n 100'
+alias httpdump='sudo tcpdump -i en0 -n -s 0 -w - | grep -a -o -E "Host\: .*|GET \/.*"'
+
+# GIT
+alias gb='git branch'
+alias gl='git log'
+alias gc='git commit -v'
+alias gca='git commit -v -a'
+alias gcam='git commit --amend'
+alias gd='git diff | mate'
+alias gp='git pull'
+alias gpr='git pull --rebase'
+alias gpu='git push'
+alias gst='git status'
+alias gsa='git stash apply'
+alias gsp='git stash pop'
+alias gsl='git stash list'
+alias grc='git rebase --continue'
+alias gri='git rebase --interactive'
+alias gpuh='git push heroku master'
+
+# DATABASES
+alias mstart='launchctl load -w ~/Library/LaunchAgents/org.mongodb.mongod.plist'
+alias mstop='launchctl unload -w ~/Library/LaunchAgents/org.mongodb.mongod.plist'
+alias mystart='/usr/local/Cellar/mysql/5.1.45/share/mysql/mysql.server start'
+alias mystop='/usr/local/Cellar/mysql/5.1.45/share/mysql/mysql.server stop'
+alias memstart='launchctl load -w ~/Library/LaunchAgents/com.danga.memcached.plist'
+alias memstop='launchctl unload -w ~/Library/LaunchAgents/com.danga.memcached.plist'
+alias redstart='launchctl load -w ~/Library/LaunchAgents/io.redis.redis-server.plist'
+alias redstop='launchctl unload -w ~/Library/LaunchAgents/io.redis.redis-server.plist'
+
+# SVN
+alias svnclear='find . -name .svn -print0 | xargs -0 rm -rf'
+alias svnaddall='svn status | grep "^\?" | awk "{print \$2}" | xargs svn add'
+
+# RUBY
+alias ge='gem edit'
+alias irb='irb --readline -r irb/completion'
+alias i='irb -rubygems'
+alias ss='script/server'
+alias sc='script/console'
+alias sg='script/generate'
+alias r='rake'
+alias rt='rake -T'
+alias restart='touch tmp/restart.txt'
+alias migrate='rake db:migrate db:test:prepare'
+alias remigrate='rake db:drop db:create db:migrate'
+
+#RVM
+alias r8='rvm use ree'
+alias r9='rvm use 1.9.1'
+alias r92='rvm use 1.9.2'

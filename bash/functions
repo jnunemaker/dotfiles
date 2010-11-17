@@ -1,0 +1,45 @@
+# grep through history
+function hf() { 
+	history | grep $1
+}
+
+# appends your key to a server's authorized keys file
+function authme {
+	ssh $1 'cat >>.ssh/authorized_keys' <~/.ssh/id_rsa.pub
+}
+
+# opens new tab in terminal to same directory as current
+function nt {
+  terminal_clone_command="
+tell application \"Terminal\"
+  tell application \"System Events\" to tell process \"Terminal\" to keystroke \"t\" using command down
+  do script with command \"cd `pwd`; clear\" in  selected tab of the front window
+end tell
+"
+  echo "$terminal_clone_command" | osascript &>/dev/null
+}
+
+# Make port 80 "real life" speeds. You can also use Mongrel ports.
+function slow_port {
+  # Set the port variable if no port inputted. Defaulted to 80 (for Passenger).
+  if [ -z "$1" ]
+  then port=80
+  else port=$1
+  fi
+  
+  # Slow the ports.
+  sudo ipfw pipe 1 config bw 100KByte/s
+  sudo ipfw add 1 pipe 1 src-port $port
+  sudo ipfw add 1 pipe 1 dst-port $port
+  echo "Port $port succesfully slowed."
+}
+ 
+function unslow_port {
+  sudo ipfw delete 1
+  echo "Port succesfully un-slowed."
+}
+
+###### Prompt colors and git branch
+function parse_git_branch() {
+  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
+}
