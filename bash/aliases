@@ -4,39 +4,43 @@ alias ee="$EDITOR ~/bin/dotfiles/bash/env && reload"
 
 alias droid='say -v "Cellos"'
 
+alias v='vagrant'
+
 # Bundler
 alias bx='bundle exec'
 alias bo='bundle open'
 alias bu='bundle update'
 
+alias pass='passenger start'
+
 # Processes
 alias tu='top -o cpu'
 alias tm='top -o vsize'
 
+alias h='heroku'
+alias pam='polyamory'
 alias code='cd ~/dev/ruby/code'
 alias repos='cd ~/dev/repos'
-alias proj='cd ~/dev/projects'
+alias proj='cd ~/projects'
 alias clone='cd ~/dev/repos && git clone $1'
 
 # Projects
+alias sp='cd ~/Sites/speakerdeck'
+alias ga='cd ~/Sites/gauges'
 alias harm='cd ~/Sites/harmony'
-alias harmm='open ~/Desktop/harmony.tmproj'
-alias mm='cd ~/dev/projects/mongomapper'
-alias mmm='open ~/Desktop/mongomapper.tmproj'
-alias ad='cd ~/dev/projects/adapter'
-alias adm='open ~/Desktop/adapter.tmproj'
-alias plu='cd ~/dev/projects/plucky'
-alias plum='open ~/Desktop/plucky.tmproj'
-alias joint='cd ~/dev/projects/joint'
-alias driver='cd ~/dev/ruby/code/mongo-ruby-driver/'
-alias driverm='mate ~/dev/ruby/code/mongo-ruby-driver/'
+alias mm='cd ~/projects/mongomapper'
+alias ad='cd ~/projects/adapter'
+alias ts='cd ~/projects/toystore'
+alias tmo='cd ~/projects/toystore-mongo'
+alias plu='cd ~/projects/plucky'
+alias joint='cd ~/projects/joint'
+alias driver='cd ~/dev/repos/mongo-ruby-driver'
 
 # General
 alias l='ls -lah'
-alias h='history'
 alias c='clear'
 alias o='open .'
-alias e='mate .'
+alias e='subl . -n'
 alias tf='tail -f -n 100'
 alias httpdump='sudo tcpdump -i en0 -n -s 0 -w - | grep -a -o -E "Host\: .*|GET \/.*"'
 
@@ -77,6 +81,7 @@ alias ge='gem edit'
 alias irb='irb --readline -r irb/completion'
 alias i='irb -rubygems'
 alias ss='script/server'
+alias st='script/test'
 alias sc='script/console'
 alias sg='script/generate'
 alias r='rake'
@@ -87,5 +92,4 @@ alias remigrate='rake db:drop db:create db:migrate'
 
 #RVM
 alias r8='rvm use ree'
-alias r9='rvm use 1.9.1'
-alias r92='rvm use 1.9.2'
+alias r9='rvm use 1.9.2'
