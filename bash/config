@@ -4,7 +4,7 @@
 # PS1="$RED\$(date +%H:%M) \w$YELLOW \$(parse_git_branch)$GREEN\$ "
 
 function __git_dirty {
-  git diff --quiet HEAD &>/dev/null 
+  git diff --quiet HEAD &>/dev/null
   [ $? == 1 ] && echo "!"
 }
 
@@ -12,16 +12,6 @@ function __git_branch {
   __git_ps1 "(%s)"
 }
 
-function __my_rvm_ruby_version {
-  local gemset=$(echo $GEM_HOME | awk -F'@' '{print $2}')
-  [ "$gemset" != "" ] && gemset="@$gemset"
-  local version=$(echo $MY_RUBY_HOME | awk -F'-' '{print $2}')
-  [ "$version" == "1.8.7" ] && version=""
-  local full="$version$gemset"
-  [ "$full" != "" ] && echo "$full "
-}
-
-# via http://tammersaleh.com/posts/a-better-rvm-bash-prompt
 bash_prompt() {
   local NONE="\[\033[0m\]"    # unsets color to term's fg color
 
@@ -38,7 +28,7 @@ bash_prompt() {
   local UC=$W                 # user's color
   [ $UID -eq "0" ] && UC=$R   # root's color
 
-  PS1="\A $W\$(__my_rvm_ruby_version)$R\w $Y\$(__git_branch)$R\$(__git_dirty)${NONE}$ "
+  PS1="\A $W$R\w $Y\$(__git_branch)$R\$(__git_dirty)${NONE}$ "
 }
 
 bash_prompt
