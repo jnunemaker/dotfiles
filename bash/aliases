@@ -40,7 +40,7 @@ alias bonds='cd ~/projects/bonds'
 alias l='ls -lah'
 alias c='clear'
 alias o='open .'
-alias e='subl . -n'
+alias e='subl'
 alias tf='tail -f -n 100'
 alias httpdump='sudo tcpdump -i en0 -n -s 0 -w - | grep -a -o -E "Host\: .*|GET \/.*"'
 
