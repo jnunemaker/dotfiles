@@ -1,5 +1,6 @@
-export EDITOR='mate -w'         # set textmate as default editor
 export PATH=~/bin:$PATH
+export EDITOR='subl -n -w'
+export BUNDLER_EDITOR='subl -n'
 export HISTCONTROL=erasedups
 
 export RUBY_HEAP_MIN_SLOTS=800000
