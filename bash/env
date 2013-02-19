@@ -1,6 +1,6 @@
-export PATH=~/bin:/usr/local/bin:$PATH         # my scripts
 export LC_CTYPE=en_US.UTF-8     # for textmate
 export EDITOR='mate -w'         # set textmate as default editor
+export PATH=~/bin:$PATH
 export HISTCONTROL=erasedups
 
 export RUBY_HEAP_MIN_SLOTS=800000
