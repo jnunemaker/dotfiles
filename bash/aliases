@@ -64,18 +64,6 @@ alias grc='git rebase --continue'
 alias gri='git rebase --interactive'
 alias gpuh='git push heroku master'
 
-# DATABASES
-alias mstart='launchctl load -w ~/Library/LaunchAgents/org.mongodb.mongod.plist'
-alias mstop='launchctl unload -w ~/Library/LaunchAgents/org.mongodb.mongod.plist'
-alias mystart='/usr/local/Cellar/mysql/5.1.45/share/mysql/mysql.server start'
-alias mystop='/usr/local/Cellar/mysql/5.1.45/share/mysql/mysql.server stop'
-alias memstart='launchctl load -w ~/Library/LaunchAgents/com.danga.memcached.plist'
-alias memstop='launchctl unload -w ~/Library/LaunchAgents/com.danga.memcached.plist'
-alias redstart='launchctl load -w ~/Library/LaunchAgents/io.redis.redis-server.plist'
-alias redstop='launchctl unload -w ~/Library/LaunchAgents/io.redis.redis-server.plist'
-alias pgstart='pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start'
-alias pgstop='pg_ctl -D /usr/local/var/postgres stop -s -m fast'
-
 # SVN
 alias svnclear='find . -name .svn -print0 | xargs -0 rm -rf'
 alias svnaddall='svn status | grep "^\?" | awk "{print \$2}" | xargs svn add'
