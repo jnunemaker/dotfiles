@@ -81,3 +81,6 @@ alias rt='rake -T'
 alias migrate='rake db:migrate db:test:prepare'
 alias remigrate='rake db:drop db:create db:migrate'
 
+alias mstart='sudo mongod --dbpath /data/db'
+alias memstart='memcached -l localhost -p 11211 -U 11211'
+alias redstart='redis-server'
