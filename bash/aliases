@@ -1,3 +1,4 @@
+alias git=hub
 alias reload='. ~/.bashrc'
 alias ea="$EDITOR ~/bin/dotfiles/bash/aliases && reload"
 alias ee="$EDITOR ~/bin/dotfiles/bash/env && reload"
