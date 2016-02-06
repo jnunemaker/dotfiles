@@ -19,22 +19,8 @@ alias bu='bundle update'
 alias pass='passenger start'
 
 alias h='heroku'
-alias pam='polyamory'
 alias repos='cd ~/repos'
-alias proj='cd ~/projects'
 alias clone='cd ~/repos && git clone $1'
-
-# Projects
-alias sp='cd ~/projects/speakerdeck'
-alias ga='cd ~/projects/gauges'
-alias harm='cd ~/projects/harmony'
-alias mm='cd ~/projects/mongomapper'
-alias ad='cd ~/projects/adapter'
-alias ts='cd ~/projects/toystore'
-alias tmo='cd ~/projects/toystore-mongo'
-alias plu='cd ~/projects/plucky'
-alias joint='cd ~/projects/joint'
-alias bonds='cd ~/projects/bonds'
 
 # General
 alias l='ls -lah'
