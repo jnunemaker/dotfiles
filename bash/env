@@ -1,6 +1,6 @@
 export PATH=~/bin:$PATH
-export EDITOR='subl -n -w'
-export BUNDLER_EDITOR='subl -n'
+export EDITOR='atom -n -w'
+export BUNDLER_EDITOR='atom -n'
 export HISTCONTROL=erasedups
 
 export RUBY_HEAP_MIN_SLOTS=800000
