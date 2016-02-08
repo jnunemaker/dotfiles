@@ -28,7 +28,7 @@ bash_prompt() {
   local UC=$W                 # user's color
   [ $UID -eq "0" ] && UC=$R   # root's color
 
-  PS1="\A $W$R\w $Y\$(__git_branch)$R\$(__git_dirty)${NONE}$ "
+  PS1="\A $W$R\W $Y\$(__git_branch)$R\$(__git_dirty)${NONE}$ "
 }
 
 bash_prompt

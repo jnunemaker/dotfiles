@@ -6,33 +6,34 @@ alias ef="$EDITOR ~/bin/dotfiles/bash/functions && reload"
 
 alias droid='say -v "Cellos"'
 
-alias '..'='cd ..'
-
-alias me='cd ~/Dropbox/development/ruby/me'
-
 # Bundler
 alias bx='bundle exec'
-alias b='bundle'
 alias bo='bundle open'
-alias bu='bundle update'
+alias bl='bundle list'
+alias bs='bundle show'
 
-alias pass='passenger start'
+# homebrew services
+alias bsl='brew services list'
 
 alias h='heroku'
 alias repos='cd ~/repos'
+alias code='cd ~/Dropbox/code'
 alias clone='cd ~/repos && git clone $1'
 
 # General
 alias l='ls -lah'
 alias c='clear'
 alias o='open .'
-alias e='subl'
+alias e='atom .'
+alias a='atom .'
+alias g='github'
 alias tf='tail -f -n 100'
 alias httpdump='sudo tcpdump -i en0 -n -s 0 -w - | grep -a -o -E "Host\: .*|GET \/.*"'
 
 # GIT
 alias gb='git branch'
 alias gl='git log'
+alias glp='git log --all --graph --pretty=format:"%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit --date=relative'
 alias glo='git log --oneline'
 alias gc='git commit -v'
 alias gca='git commit -v -a'
@@ -48,25 +49,19 @@ alias gsp='git stash pop'
 alias gsl='git stash list'
 alias grc='git rebase --continue'
 alias gri='git rebase --interactive'
-alias gpuh='git push heroku master'
-
-# SVN
-alias svnclear='find . -name .svn -print0 | xargs -0 rm -rf'
-alias svnaddall='svn status | grep "^\?" | awk "{print \$2}" | xargs svn add'
 
 # RUBY
-alias ge='gem open' # gem install gem-browse
 alias irb='irb --readline -r irb/completion'
-alias i='irb -rubygems'
 alias ss='script/server'
+alias sr='script/run'
+alias sf='script/fmt'
 alias st='script/test'
+alias sg='script/guard'
+alias sb='script/bootstrap'
+alias sw='script/watch'
 alias sc='script/console'
-alias sg='script/generate'
+alias sm='script/migrate'
 alias r='rake'
 alias rt='rake -T'
 alias migrate='rake db:migrate db:test:prepare'
 alias remigrate='rake db:drop db:create db:migrate'
-
-alias mstart='sudo mongod --dbpath /data/db'
-alias memstart='memcached -l localhost -p 11211 -U 11211'
-alias redstart='redis-server'

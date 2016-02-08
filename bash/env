@@ -1,10 +1,15 @@
-export PATH=~/bin:$PATH
+# random exports
+export PATH=./bin:~/bin:$PATH
 export EDITOR='atom -n -w'
 export BUNDLER_EDITOR='atom -n'
 export HISTCONTROL=erasedups
 
-export RUBY_HEAP_MIN_SLOTS=800000
-export RUBY_HEAP_FREE_MIN=100000
-export RUBY_HEAP_SLOTS_INCREMENT=300000
-export RUBY_HEAP_SLOTS_GROWTH_FACTOR=1
-export RUBY_GC_MALLOC_LIMIT=79000000
+# set java to 1.7
+export JAVA_HOME=`/usr/libexec/java_home -v 1.7`
+
+# homebrew
+export PATH="/usr/local/sbin:$PATH"
+
+# rbenv path/init
+export PATH="$HOME/.rbenv/bin:$PATH"
+eval "$(rbenv init -)"
