@@ -7,9 +7,9 @@ export HISTCONTROL=erasedups
 # set java to 1.7
 export JAVA_HOME=`/usr/libexec/java_home -v 1.7`
 
-# homebrew
-export PATH="/usr/local/sbin:$PATH"
+if [ -f $(brew --prefix)/etc/bash_completion ]; then
+  source $(brew --prefix)/etc/bash_completion
+fi
 
-# rbenv path/init
-export PATH="$HOME/.rbenv/bin:$PATH"
+eval "$(hub alias -s)"
 eval "$(rbenv init -)"

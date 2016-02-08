@@ -1,4 +1,3 @@
-alias git=hub
 alias reload='. ~/.bashrc'
 alias ea="$EDITOR ~/bin/dotfiles/bash/aliases && reload"
 alias ee="$EDITOR ~/bin/dotfiles/bash/env && reload"
@@ -11,10 +10,6 @@ alias bx='bundle exec'
 alias bo='bundle open'
 alias bl='bundle list'
 alias bs='bundle show'
-
-# homebrew services
-alias bsl='brew services list'
-
 alias h='heroku'
 alias repos='cd ~/repos'
 alias code='cd ~/Dropbox/code'
@@ -55,6 +50,7 @@ alias irb='irb --readline -r irb/completion'
 alias ss='script/server'
 alias sr='script/run'
 alias sf='script/fmt'
+alias sb='script/bootstrap'
 alias st='script/test'
 alias sg='script/guard'
 alias sb='script/bootstrap'
