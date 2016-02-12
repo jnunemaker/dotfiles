@@ -1,5 +1,4 @@
 # random exports
-export PATH=./bin:~/bin:$PATH
 export EDITOR='atom -n -w'
 export BUNDLER_EDITOR='atom -n'
 export HISTCONTROL=erasedups
@@ -13,3 +12,5 @@ fi
 
 eval "$(hub alias -s)"
 eval "$(rbenv init -)"
+
+export PATH=./bin:~/bin:$PATH
