@@ -1,5 +1,6 @@
 # random exports
 export EDITOR='atom -n -w'
+export GIT_EDITOR=vi
 export BUNDLER_EDITOR='atom -n'
 export HISTCONTROL=erasedups
 
