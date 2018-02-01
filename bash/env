@@ -4,9 +4,6 @@ export GIT_EDITOR=vi
 export BUNDLER_EDITOR='atom -n'
 export HISTCONTROL=erasedups
 
-# set java to 1.7
-export JAVA_HOME=`/usr/libexec/java_home -v 1.7`
-
 if [ -f $(brew --prefix)/etc/bash_completion ]; then
   source $(brew --prefix)/etc/bash_completion
 fi

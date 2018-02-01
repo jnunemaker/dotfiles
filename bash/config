@@ -3,6 +3,9 @@
 # GREEN="\[\033[0;32m\]"
 # PS1="$RED\$(date +%H:%M) \w$YELLOW \$(parse_git_branch)$GREEN\$ "
 
+# for __git_ps1
+. ~/bin/dotfiles/bash/git-prompt.sh
+
 function __git_dirty {
   git diff --quiet HEAD &>/dev/null
   [ $? == 1 ] && echo "!"
