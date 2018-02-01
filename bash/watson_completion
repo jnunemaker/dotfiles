@@ -1,0 +1,101 @@
+# Bash completion support for watson
+#
+# Install this as `/etc/bash_completion.d/watson` and restart your shell.
+
+_watson_complete () {
+  local cur cmd commands frames projects tags
+
+  commands='cancel config edit frames help log merge projects remove rename report restart start status stop sync tags'
+
+  cur=${COMP_WORDS[COMP_CWORD]}
+  cmd=${COMP_WORDS[1]}
+
+  case ${COMP_CWORD} in
+    1)
+      COMPREPLY=($(compgen -W "$commands" -- "$cur" )) ;;
+    *)
+      case "${cmd}" in
+        config)
+          COMPREPLY=($(compgen -W "-e --edit" -- ${cur})) ;;
+        edit)
+          frames="$(watson frames)"
+          COMPREPLY=($(compgen -W "$frames" -- ${cur}))
+          ;;
+        help)
+          COMPREPLY=($(compgen -W "$commands" -- "$cur" )) ;;
+        log|report)
+          case "$3" in
+            -p|--project)
+              local IFS=$'\n'
+              projects="$(watson projects | sed -e 's/ /\\\\ /g')"
+              COMPREPLY=($(compgen -W "$projects" -- ${cur}))
+              ;;
+            -T|--tag)
+              local IFS=$'\n'
+              tags="$(watson tags | sed -e 's/ /\\\\ /g')"
+              COMPREPLY=($(compgen -W "$tags" -- ${cur}))
+              ;;
+            *)
+              COMPREPLY=($(compgen -W "-c -C -d -f -m -p -t -T -w -y --current --no-current --from --to --project --tag --day --week --month --year" -- ${cur})) ;;
+          esac
+          ;;
+        merge)
+          case "${cur}" in
+            -*)
+              COMPREPLY=($(compgen -W "-f --force" -- ${cur})) ;;
+            *)
+              COMPREPLY=($(compgen -o filenames -f -- ${cur}))
+              ;;
+          esac
+          ;;
+        remove)
+          case "${cur}" in
+            -*)
+              COMPREPLY=($(compgen -W "-f --force" -- ${cur})) ;;
+            *)
+              frames="$(watson frames)"
+              COMPREPLY=($(compgen -W "$frames" -- ${cur}))
+              ;;
+          esac
+          ;;
+        restart)
+          case "${cur}" in
+            -*)
+              COMPREPLY=($(compgen -W "-s --stop -S --no-stop" -- ${cur})) ;;
+            *)
+              frames="$(watson frames)"
+              COMPREPLY=($(compgen -W "$frames" -- ${cur}))
+              ;;
+          esac
+          ;;
+        start)
+          local IFS=$'\n'
+          if [[ $COMP_CWORD -eq 2 ]]; then
+            projects="$(watson projects | sed -e 's/ /\\\\ /g')"
+            COMPREPLY=($(compgen -W "$projects" -- ${cur}))
+          else
+            tags="$(watson tags | sed -e 's/ /\\\\ /g' | awk '$0="+"$0')"
+            COMPREPLY=($(compgen -W "$tags" -- ${cur}))
+          fi
+          ;;
+        rename)
+          local IFS=$'\n'
+          case "$3" in
+            project)
+              projects="$(watson projects | sed -e 's/ /\\\\ /g')"
+              COMPREPLY=($(compgen -W "$projects" -- ${cur}))
+              ;;
+            tag)
+              tags="$(watson tags | sed -e 's/ /\\\\ /g')"
+              COMPREPLY=($(compgen -W "$tags" -- ${cur}))
+              ;;
+          esac
+          ;;
+      esac
+      ;;
+  esac
+
+  return 0
+}
+
+complete -F _watson_complete watson

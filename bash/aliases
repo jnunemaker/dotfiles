@@ -5,6 +5,8 @@ alias ef="$EDITOR ~/bin/dotfiles/bash/functions && reload"
 
 alias droid='say -v "Cellos"'
 
+alias kill-camera="sudo killall VDCAssistant"
+
 # Bundler
 alias bx='bundle exec'
 alias bo='bundle open'
@@ -16,18 +18,22 @@ alias code='cd ~/Dropbox/code'
 alias clone='cd ~/repos && git clone $1'
 
 # General
-alias l='ls -lah'
-alias c='clear'
 alias o='open .'
-alias e='atom .'
 alias a='atom .'
-alias g='github'
 alias tf='tail -f -n 100'
 alias httpdump='sudo tcpdump -i en0 -n -s 0 -w - | grep -a -o -E "Host\: .*|GET \/.*"'
 
+# HUB
+alias hb='hub browse'
+alias hc='hub compare'
+alias i='hub issue'
+alias im='hub issue -a jnunemaker'
+
 # GIT
+alias git='/usr/local/bin/git'
 alias gb='git branch'
 alias gl='git log'
+alias gap='git add -p'
 alias glp='git log --all --graph --pretty=format:"%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit --date=relative'
 alias glo='git log --oneline'
 alias gc='git commit -v'
@@ -44,6 +50,7 @@ alias gsp='git stash pop'
 alias gsl='git stash list'
 alias grc='git rebase --continue'
 alias gri='git rebase --interactive'
+alias gdone='git checkout master && git pull && git branch -d @{-1}' # from @jasonrudolph
 
 # RUBY
 alias irb='irb --readline -r irb/completion'
@@ -57,7 +64,5 @@ alias sb='script/bootstrap'
 alias sw='script/watch'
 alias sc='script/console'
 alias sm='script/migrate'
-alias r='rake'
-alias rt='rake -T'
 alias migrate='rake db:migrate db:test:prepare'
 alias remigrate='rake db:drop db:create db:migrate'

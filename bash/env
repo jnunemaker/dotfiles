@@ -4,6 +4,9 @@ export GIT_EDITOR=vi
 export BUNDLER_EDITOR='atom -n'
 export HISTCONTROL=erasedups
 
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
+
 # set java to 1.7
 export JAVA_HOME=`/usr/libexec/java_home -v 1.7`
 
@@ -11,7 +14,9 @@ if [ -f $(brew --prefix)/etc/bash_completion ]; then
   source $(brew --prefix)/etc/bash_completion
 fi
 
-eval "$(hub alias -s)"
-eval "$(rbenv init -)"
+source ~/bin/dotfiles/bash/watson_completion
 
-export PATH=./bin:~/bin:$PATH
+eval "$(rbenv init -)"
+eval "$(nodenv init -)"
+
+export PATH=./bin:~/bin:/usr/local/sbin:$PATH
