@@ -15,6 +15,10 @@ if [ -f $(brew --prefix)/etc/bash_completion.d/git-prompt.sh ]; then
   source $(brew --prefix)/etc/bash_completion.d/git-prompt.sh
 fi
 
+if [ -f $(brew --prefix)/etc/bash_completion.d/git-completion.bash ]; then
+  source $(brew --prefix)/etc/bash_completion.d/git-completion.bash
+fi
+
 source ~/bin/dotfiles/bash/watson_completion
 
 eval "$(rbenv init -)"
