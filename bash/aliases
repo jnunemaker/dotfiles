@@ -18,6 +18,7 @@ alias code='cd ~/Dropbox/code'
 alias clone='cd ~/repos && git clone $1'
 
 # General
+alias l='ls -lah'
 alias o='open .'
 alias a='atom .'
 alias tf='tail -f -n 100'
