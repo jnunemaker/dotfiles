@@ -4,6 +4,10 @@ export GIT_EDITOR=vi
 export BUNDLER_EDITOR='atom -n'
 export HISTCONTROL=erasedups
 
+# To make zeus work on high sierra:
+# https://github.com/burke/zeus/issues/617#issuecomment-346040927
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
 
