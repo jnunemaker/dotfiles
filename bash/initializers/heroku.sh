@@ -1,0 +1,1 @@
+alias h='heroku'

@@ -3,6 +3,14 @@
 # GREEN="\[\033[0;32m\]"
 # PS1="$RED\$(date +%H:%M) \w$YELLOW \$(parse_git_branch)$GREEN\$ "
 
+if [ -f $(brew --prefix)/etc/bash_completion.d/git-prompt.sh ]; then
+  source $(brew --prefix)/etc/bash_completion.d/git-prompt.sh
+fi
+
+function parse_git_branch() {
+  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
+}
+
 function __git_dirty {
   git diff --quiet HEAD &>/dev/null
   [ $? == 1 ] && echo "!"

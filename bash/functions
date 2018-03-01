@@ -1,9 +1,0 @@
-# appends your key to a server's authorized keys file
-function authme {
-	ssh $1 'cat >>.ssh/authorized_keys' <~/.ssh/id_rsa.pub
-}
-
-###### Prompt colors and git branch
-function parse_git_branch() {
-  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
-}
