@@ -13,9 +13,9 @@ alias bo='bundle open'
 alias bl='bundle list'
 alias bs='bundle show'
 alias h='heroku'
-alias repos='cd ~/repos'
+alias repos='cd ~/Dropbox/repos'
 alias code='cd ~/Dropbox/code'
-alias clone='cd ~/repos && git clone $1'
+alias clone='cd ~/Dropbox/repos && git clone $1'
 
 # General
 alias l='ls -lah'
