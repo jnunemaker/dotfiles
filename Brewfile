@@ -24,3 +24,5 @@ brew "rbenv"
 brew "hub"
 brew "jq"
 brew "the_silver_searcher"
+
+brew "diff-so-fancy"
