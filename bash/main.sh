@@ -1,7 +1,7 @@
 export HISTCONTROL=erasedups
 export DOTFILES=$HOME/bin/dotfiles
 
-alias reload='source $HOME/.bashrc'
+alias reload='source $HOME/.bash_profile'
 
 # Stuff you dont want to be in git repo can go in here and you can just git ignore
 if [ -s "$DOTFILES/bash/private.sh" ]; then
