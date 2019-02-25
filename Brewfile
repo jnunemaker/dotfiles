@@ -26,3 +26,4 @@ brew "jq"
 brew "the_silver_searcher"
 
 brew "diff-so-fancy"
+brew "git-extras"
