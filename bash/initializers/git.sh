@@ -1,5 +1,7 @@
 alias git='/usr/local/bin/git'
 alias gb='git branch'
+alias gbm='git branch --merged'
+alias gbr='git browse'
 alias gl='git log'
 alias gap='git add -p'
 alias glp='git log --all --graph --pretty=format:"%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit --date=relative'
