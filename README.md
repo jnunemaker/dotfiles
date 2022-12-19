@@ -4,7 +4,7 @@ Install homebrew and git.
 
 ```bash
 # May want to check brew.sh for updated homebrew installation
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 brew install git
 ```
 
