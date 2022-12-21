@@ -11,9 +11,7 @@ brew install git
 Setup dotfiles.
 
 ```bash
-mkdir ~/bin
-cd ~/bin
-git clone git://github.com/jnunemaker/dotfiles.git
-cd dotfiles
-script/bootstrap
+git clone https://github.com/jnunemaker/dotfiles.git ~/.dotfiles
+~/.dotfiles/script/setup
+brew bundle --global
 ```

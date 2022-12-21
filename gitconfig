@@ -1,0 +1,48 @@
+[user]
+	name = John Nunemaker
+	email = nunemaker@gmail.com
+	signingkey = 2DB63FE78C8E37AC
+[github]
+	user = jnunemaker
+[push]
+	default = simple
+	autoSetupRemote = true
+[credential]
+	helper = osxkeychain
+[alias]
+	co = checkout
+  ci = commit
+  st = status
+  br = branch
+  cp = cherry-pick
+	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+        open = !open `git config remote.origin.url`
+  # Amend the last commit
+  amend = commit --amend -C HEAD
+
+  # Undo the last commit, preserving the changes
+  undo = reset --soft HE
+
+  # Show number of commits by each contributor
+  count = shortlog -sn
+
+  # List Recent Branches
+  recent = for-each-ref --count=5 --sort=-committerdate --format='%(refname:short)' refs/heads/
+
+[color]
+  diff = auto
+  status = auto
+  branch = auto
+  interactive = auto
+  ui = true
+  pager = true
+[core]
+  pager = diff-so-fancy | less --tabs=4 -RFX
+[fetch]
+  # Always prune remote branches when fetching
+  prune = true
+[help]
+  autocorrect = 1
+[branch]
+  autosetuprebase = always
+  autosetupmerge = true

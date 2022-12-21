@@ -1,0 +1,4 @@
+# Global ignores
+
+.DS_Store
+tmp
