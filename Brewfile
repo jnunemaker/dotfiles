@@ -1,18 +1,14 @@
 tap "homebrew/cask"
 tap "homebrew/cask-versions"
 tap "homebrew/services"
+tap "mongodb/brew"
 
 brew "memcached"
 brew "postgresql"
+brew "mysql"
 brew "redis"
-
-brew "nodenv"
-brew "rbenv"
+brew "mongodb-community@6.0"
 brew "asdf"
-
-brew "gh"
-brew "jq"
-brew "the_silver_searcher"
-
 brew "diff-so-fancy"
 brew "git-extras"
+brew "jless"
