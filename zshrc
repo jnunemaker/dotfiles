@@ -117,10 +117,14 @@ alias ohmyzsh="code ~/.oh-my-zsh"
 alias ss='script/server'
 alias sb='script/bootstrap'
 alias st='script/test'
+alias bx='be'
 alias a='code .'
 alias e='code .'
+alias ee='code ~/.dotfiles'
 alias repos='cd ~/Dropbox/repos'
 alias clone='cd ~/Dropbox/repos && git clone $1'
+alias gdone='git checkout main && git pull && git branch -d @{-1}' # from @jasonrudolph
+alias h='heroku'
 
 # Configure completions for Homebrew
 if type brew &>/dev/null
@@ -131,9 +135,7 @@ then
   compinit
 fi
 
-# Setup nodenv and rbenv
-if which nodenv > /dev/null; then eval "$(nodenv init -)"; fi
-if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # Setup asdf so it works
 . /opt/homebrew/opt/asdf/libexec/asdf.sh
@@ -152,3 +154,4 @@ alias pass=generate_password
 export EDITOR='code --new-window --wait'
 export BUNDLER_EDITOR='code --new-window'
 export GIT_EDITOR=vi
+export HOMEBREW_NO_AUTO_UPDATE=1
