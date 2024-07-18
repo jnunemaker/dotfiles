@@ -76,7 +76,6 @@ plugins=(
   dotenv
   macos
   rake
-  rbenv
   ruby
   brew
   heroku
@@ -124,6 +123,7 @@ alias ee='code ~/.dotfiles'
 alias repos='cd ~/Dropbox/repos'
 alias clone='cd ~/Dropbox/repos && git clone $1'
 alias gdone='git checkout main && git pull && git branch -d @{-1}' # from @jasonrudolph
+alias ogdone='git checkout master && git pull && git branch -d @{-1}' # from @jasonrudolph
 alias h='heroku'
 
 # Configure completions for Homebrew
