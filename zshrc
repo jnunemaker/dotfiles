@@ -1,5 +1,6 @@
 # If you come from bash you might have to change your $PATH.
-export PATH=./bin:$HOME/bin:$PATH
+# /Users/johnnunemaker/.local/bin is for pipx
+export PATH=./bin:$HOME/bin:/Users/johnnunemaker/.local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -73,7 +74,6 @@ ZSH_THEME="robbyrussell"
 plugins=(
   git
   bundler
-  dotenv
   macos
   rake
   ruby
@@ -81,7 +81,6 @@ plugins=(
   heroku
   magic-enter
   rand-quote
-  vscode
   yarn
   command-not-found
 )
@@ -111,20 +110,23 @@ source $ZSH/oh-my-zsh.sh
 # For a full list of active aliases, run `alias`.
 #
 # Example aliases
-alias zshconfig="code ~/.zshrc"
-alias ohmyzsh="code ~/.oh-my-zsh"
+alias a='zed .'
+alias h='heroku'
+alias c='claude'
+alias zshconfig="zed ~/.zshrc"
+alias ohmyzsh="zed ~/.oh-my-zsh"
 alias ss='script/server'
 alias sb='script/bootstrap'
 alias st='script/test'
 alias bx='be'
-alias a='code .'
-alias e='code .'
-alias ee='code ~/.dotfiles'
-alias repos='cd ~/Dropbox/repos'
+alias bo='bundle open'
+alias ee='zed ~/.dotfiles'
+alias repos='cd ~/Library/Mobile\ Documents/com~apple~CloudDocs/repos'
 alias clone='cd ~/Dropbox/repos && git clone $1'
-alias gdone='git checkout main && git pull && git branch -d @{-1}' # from @jasonrudolph
-alias ogdone='git checkout master && git pull && git branch -d @{-1}' # from @jasonrudolph
-alias h='heroku'
+alias gdone='git checkout $(git symbolic-ref refs/remotes/origin/HEAD | sed "s@^refs/remotes/origin/@@") && git pull && git branch -d @{-1}' # from @jasonrudolph
+alias gbo='gh browse -b $(git branch --show-current)'
+alias gsl='git stash list'
+alias reload='source ~/.zshrc'
 
 # Configure completions for Homebrew
 if type brew &>/dev/null
@@ -151,7 +153,31 @@ generate_password() {
 alias pass=generate_password
 
 # Setup editor for various things
-export EDITOR='code --new-window --wait'
-export BUNDLER_EDITOR='code --new-window'
+export EDITOR='zed --wait'
+export BUNDLER_EDITOR='zed --new'
 export GIT_EDITOR=vi
 export HOMEBREW_NO_AUTO_UPDATE=1
+
+function on_ruby_change() {
+  find app lib config -type f | cat - <(find test spec -name '*.rb') | entr -c -r $@
+}
+
+source ~/.dotfiles/railway_completion
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/johnnunemaker/.lmstudio/bin"
+# End of LM Studio CLI section
+
+# Use macOS system CA bundle for Ruby/OpenSSL (asdf Ruby compiles against
+# Homebrew OpenSSL which has its own cert path that doesn't include
+# locally-trusted CAs like mkcert)
+export SSL_CERT_FILE=/etc/ssl/cert.pem
+
+# opencode
+export PATH=/Users/johnnunemaker/.opencode/bin:$PATH
+
+# go install
+export PATH="$PATH:$HOME/go/bin"
+
+# for use in conductor.json so i can copy files and things like that to work trees, fireside was first use of this
+export SOURCE_DIR=~/github

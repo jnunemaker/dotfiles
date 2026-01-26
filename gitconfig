@@ -37,7 +37,7 @@
   ui = true
   pager = true
 [core]
-  pager = diff-so-fancy | less --tabs=4 -RFX
+	pager = delta
 [fetch]
   # Always prune remote branches when fetching
   prune = true
@@ -48,3 +48,12 @@
   autosetupmerge = true
 [pull]
 	rebase = false
+[filter "lfs"]
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+[init]
+	defaultBranch = main
+[delta]
+	side-by-side = true
