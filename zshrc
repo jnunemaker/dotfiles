@@ -173,11 +173,5 @@ export PATH="$PATH:/Users/johnnunemaker/.lmstudio/bin"
 # locally-trusted CAs like mkcert)
 export SSL_CERT_FILE=/etc/ssl/cert.pem
 
-# opencode
-export PATH=/Users/johnnunemaker/.opencode/bin:$PATH
-
 # go install
 export PATH="$PATH:$HOME/go/bin"
-
-# for use in conductor.json so i can copy files and things like that to work trees, fireside was first use of this
-export SOURCE_DIR=~/github
