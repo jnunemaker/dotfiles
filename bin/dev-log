@@ -5,6 +5,7 @@
 set -euo pipefail
 
 DAYS="${1:-7}"
+SUMMARIZE="${2:-}"  # Pass "summarize" as second arg to get AI summary
 GITHUB_USER="${GITHUB_USER:-$(gh api user --jq '.login' 2>/dev/null || echo '')}"
 TODOIST_TOKEN_FILE="$HOME/.config/todoist/token"
 TODOIST_API_TOKEN="${TODOIST_API_TOKEN:-$(cat "$TODOIST_TOKEN_FILE" 2>/dev/null || echo '')}"
@@ -32,6 +33,129 @@ fi
 
 echo -e "${BOLD}Development Activity Log${RESET} (last $DAYS days, since $CUTOFF_DATE)"
 echo ""
+
+# ============================================================================
+# TODOIST COMPLETED TASKS
+# ============================================================================
+
+if [[ -z "$TODOIST_API_TOKEN" ]]; then
+    echo -e "${YELLOW}Todoist token not set. Set TODOIST_API_TOKEN to include completed tasks${RESET}"
+else
+    # Get all projects to find "professional" and its subprojects
+    all_projects=$(curl -s "https://api.todoist.com/rest/v2/projects" \
+        -H "Authorization: Bearer $TODOIST_API_TOKEN" 2>/dev/null)
+
+    # Get the professional project ID
+    professional_project_id=$(echo "$all_projects" | \
+        jq -r '.[] | select(.name | ascii_downcase == "professional") | .id' 2>/dev/null)
+
+    if [[ -n "$professional_project_id" ]]; then
+        # Build list of project IDs: professional + all descendants (up to 3 levels deep)
+        # Start with the parent
+        project_ids="$professional_project_id"
+
+        # Level 1: direct children
+        level1=$(echo "$all_projects" | jq -r --arg p "$professional_project_id" '.[] | select(.parent_id == $p) | .id' 2>/dev/null)
+        if [[ -n "$level1" ]]; then
+            project_ids="$project_ids"$'\n'"$level1"
+
+            # Level 2: grandchildren
+            while IFS= read -r pid; do
+                [[ -z "$pid" ]] && continue
+                level2=$(echo "$all_projects" | jq -r --arg p "$pid" '.[] | select(.parent_id == $p) | .id' 2>/dev/null)
+                if [[ -n "$level2" ]]; then
+                    project_ids="$project_ids"$'\n'"$level2"
+
+                    # Level 3: great-grandchildren
+                    while IFS= read -r pid2; do
+                        [[ -z "$pid2" ]] && continue
+                        level3=$(echo "$all_projects" | jq -r --arg p "$pid2" '.[] | select(.parent_id == $p) | .id' 2>/dev/null)
+                        [[ -n "$level3" ]] && project_ids="$project_ids"$'\n'"$level3"
+                    done <<< "$level2"
+                fi
+            done <<< "$level1"
+        fi
+
+        # Format cutoff date for Todoist API (ISO 8601)
+        todoist_since="${CUTOFF_DATE}T00:00:00"
+
+        # Build JSON array of project IDs for jq filtering
+        project_ids_json=$(echo "$project_ids" | jq -R -s 'split("\n") | map(select(. != ""))')
+
+        # Get all completed tasks (no project filter), then filter by our project IDs
+        completed_tasks=$(curl -s "https://api.todoist.com/sync/v9/completed/get_all" \
+            -H "Authorization: Bearer $TODOIST_API_TOKEN" \
+            -d "since=$todoist_since" \
+            -d "limit=200" \
+            -d "annotate_items=true" 2>/dev/null | \
+            jq -r --argjson ids "$project_ids_json" \
+            '.items[]? | select(.project_id as $pid | $ids | map(. == ($pid | tostring)) | any) | "  \(.completed_at | split("T")[0]) \(.content)"' 2>/dev/null | \
+            sort -r)
+
+        if [[ -n "$completed_tasks" ]]; then
+            echo -e "${BLUE}${BOLD}Todoist Completed (Professional)${RESET}"
+            echo -e "${DIM}─────────────────────────────────${RESET}"
+            echo "$completed_tasks"
+            echo ""
+        fi
+    else
+        echo -e "${YELLOW}Todoist 'professional' project not found${RESET}"
+    fi
+fi
+
+# ============================================================================
+# GITHUB ACTIVITY
+# ============================================================================
+
+if [[ -z "$GITHUB_USER" ]]; then
+    echo -e "${YELLOW}GitHub user not detected. Set GITHUB_USER or authenticate with 'gh auth login'${RESET}"
+else
+    # Issues created
+    issues_created=$(gh search issues --author="$GITHUB_USER" --created=">$CUTOFF_DATE" --json title,repository,createdAt,state --limit 50 2>/dev/null | \
+        jq -r '.[] | "  \(.createdAt | split("T")[0]) \(.repository.nameWithOwner): \(.title) [\(.state | ascii_downcase)]"' 2>/dev/null | \
+        sort -r)
+    if [[ -n "$issues_created" ]]; then
+        echo -e "${GREEN}${BOLD}GitHub Issues Created${RESET}"
+        echo -e "${DIM}─────────────────────${RESET}"
+        echo "$issues_created"
+        echo ""
+    fi
+
+    # Issues closed
+    issues_closed=$(gh search issues --author="$GITHUB_USER" --state=closed --closed=">$CUTOFF_DATE" --json title,repository,closedAt --limit 50 2>/dev/null | \
+        jq -r '.[] | "  \(.closedAt | split("T")[0]) \(.repository.nameWithOwner): \(.title)"' 2>/dev/null | \
+        sort -r)
+    if [[ -n "$issues_closed" ]]; then
+        echo -e "${GREEN}${BOLD}GitHub Issues Closed${RESET}"
+        echo -e "${DIM}────────────────────${RESET}"
+        echo "$issues_closed"
+        echo ""
+    fi
+
+    # PRs still open (created in period, not yet merged)
+    prs_open=$(gh search prs --author="$GITHUB_USER" --created=">$CUTOFF_DATE" --state=open --json title,repository,createdAt --limit 50 2>/dev/null | \
+        jq -r '.[] | "  \(.createdAt | split("T")[0]) \(.repository.nameWithOwner): \(.title)"' 2>/dev/null | \
+        sort -r)
+    if [[ -n "$prs_open" ]]; then
+        echo -e "${YELLOW}${BOLD}GitHub PRs Still Open${RESET}"
+        echo -e "${DIM}─────────────────────${RESET}"
+        echo "$prs_open"
+        echo ""
+    fi
+
+    # PRs merged (with [new] tag if created in the period)
+    prs_merged=$(gh search prs --author="$GITHUB_USER" --merged --merged-at=">$CUTOFF_DATE" --json title,repository,closedAt,createdAt --limit 50 2>/dev/null | \
+        jq -r --arg cutoff "$CUTOFF_DATE" '.[] |
+            (if (.createdAt | split("T")[0]) > $cutoff then " [new]" else "" end) as $tag |
+            "  \(.closedAt | split("T")[0]) \(.repository.nameWithOwner): \(.title)\($tag)"' 2>/dev/null | \
+        sort -r)
+    if [[ -n "$prs_merged" ]]; then
+        echo -e "${MAGENTA}${BOLD}GitHub PRs Merged${RESET}"
+        echo -e "${DIM}─────────────────${RESET}"
+        echo "$prs_merged"
+        echo ""
+    fi
+fi
 
 # ============================================================================
 # CLAUDE CODE SESSIONS
@@ -89,6 +213,12 @@ parse_session() {
     local last_ts=$(jq -r 'select(.type=="user" or .type=="assistant") | .timestamp' "$file" 2>/dev/null | tail -1)
 
     if [[ -z "$first_ts" ]]; then
+        return
+    fi
+
+    # Filter out sessions older than cutoff date based on actual timestamp
+    local session_ts=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${first_ts%.*}" +%s 2>/dev/null || echo "0")
+    if [[ "$session_ts" -lt "$CUTOFF_TS" ]]; then
         return
     fi
 
@@ -193,97 +323,17 @@ done < <(find_sessions) | sort -t'|' -k1,1r | while IFS='|' read -r date project
 done
 
 echo ""
-
-# ============================================================================
-# GITHUB ACTIVITY
-# ============================================================================
-
-if [[ -z "$GITHUB_USER" ]]; then
-    echo -e "${YELLOW}GitHub user not detected. Set GITHUB_USER or authenticate with 'gh auth login'${RESET}"
-else
-    # Issues created
-    issues_created=$(gh search issues --author="$GITHUB_USER" --created=">$CUTOFF_DATE" --json title,repository,createdAt,state --limit 50 2>/dev/null | \
-        jq -r '.[] | "  \(.createdAt | split("T")[0]) \(.repository.nameWithOwner): \(.title) [\(.state | ascii_downcase)]"' 2>/dev/null | \
-        sort -r)
-    if [[ -n "$issues_created" ]]; then
-        echo -e "${GREEN}${BOLD}GitHub Issues Created${RESET}"
-        echo -e "${DIM}─────────────────────${RESET}"
-        echo "$issues_created"
-        echo ""
-    fi
-
-    # Issues closed
-    issues_closed=$(gh search issues --author="$GITHUB_USER" --state=closed --closed=">$CUTOFF_DATE" --json title,repository,closedAt --limit 50 2>/dev/null | \
-        jq -r '.[] | "  \(.closedAt | split("T")[0]) \(.repository.nameWithOwner): \(.title)"' 2>/dev/null | \
-        sort -r)
-    if [[ -n "$issues_closed" ]]; then
-        echo -e "${GREEN}${BOLD}GitHub Issues Closed${RESET}"
-        echo -e "${DIM}────────────────────${RESET}"
-        echo "$issues_closed"
-        echo ""
-    fi
-
-    # PRs still open (created in period, not yet merged)
-    prs_open=$(gh search prs --author="$GITHUB_USER" --created=">$CUTOFF_DATE" --state=open --json title,repository,createdAt --limit 50 2>/dev/null | \
-        jq -r '.[] | "  \(.createdAt | split("T")[0]) \(.repository.nameWithOwner): \(.title)"' 2>/dev/null | \
-        sort -r)
-    if [[ -n "$prs_open" ]]; then
-        echo -e "${YELLOW}${BOLD}GitHub PRs Still Open${RESET}"
-        echo -e "${DIM}─────────────────────${RESET}"
-        echo "$prs_open"
-        echo ""
-    fi
-
-    # PRs merged (with [new] tag if created in the period)
-    prs_merged=$(gh search prs --author="$GITHUB_USER" --merged --merged-at=">$CUTOFF_DATE" --json title,repository,closedAt,createdAt --limit 50 2>/dev/null | \
-        jq -r --arg cutoff "$CUTOFF_DATE" '.[] |
-            (if (.createdAt | split("T")[0]) > $cutoff then " [new]" else "" end) as $tag |
-            "  \(.closedAt | split("T")[0]) \(.repository.nameWithOwner): \(.title)\($tag)"' 2>/dev/null | \
-        sort -r)
-    if [[ -n "$prs_merged" ]]; then
-        echo -e "${MAGENTA}${BOLD}GitHub PRs Merged${RESET}"
-        echo -e "${DIM}─────────────────${RESET}"
-        echo "$prs_merged"
-        echo ""
-    fi
-fi
-
-# ============================================================================
-# TODOIST COMPLETED TASKS
-# ============================================================================
-
-if [[ -z "$TODOIST_API_TOKEN" ]]; then
-    echo -e "${YELLOW}Todoist token not set. Set TODOIST_API_TOKEN to include completed tasks${RESET}"
-else
-    # Get project ID for "professional"
-    professional_project_id=$(curl -s "https://api.todoist.com/rest/v2/projects" \
-        -H "Authorization: Bearer $TODOIST_API_TOKEN" | \
-        jq -r '.[] | select(.name | ascii_downcase == "professional") | .id' 2>/dev/null)
-
-    if [[ -n "$professional_project_id" ]]; then
-        # Format cutoff date for Todoist API (ISO 8601)
-        todoist_since="${CUTOFF_DATE}T00:00:00"
-
-        # Get completed tasks from professional project
-        completed_tasks=$(curl -s "https://api.todoist.com/sync/v9/completed/get_all" \
-            -H "Authorization: Bearer $TODOIST_API_TOKEN" \
-            -d "project_id=$professional_project_id" \
-            -d "since=$todoist_since" \
-            -d "limit=200" \
-            -d "annotate_items=true" 2>/dev/null | \
-            jq -r '.items[]? | "  \(.completed_at | split("T")[0]) \(.content)"' 2>/dev/null | \
-            sort -r)
-
-        if [[ -n "$completed_tasks" ]]; then
-            echo -e "${BLUE}${BOLD}Todoist Completed (Professional)${RESET}"
-            echo -e "${DIM}─────────────────────────────────${RESET}"
-            echo "$completed_tasks"
-            echo ""
-        fi
-    else
-        echo -e "${YELLOW}Todoist 'professional' project not found${RESET}"
-    fi
-fi
-
-echo ""
 echo -e "${DIM}Generated at $(date '+%Y-%m-%d %H:%M:%S')${RESET}"
+
+# ============================================================================
+# AI SUMMARY (optional)
+# ============================================================================
+
+if [[ "$SUMMARIZE" == "summarize" ]] || [[ "$SUMMARIZE" == "s" ]]; then
+    echo ""
+    echo -e "${BOLD}${MAGENTA}AI Summary${RESET}"
+    echo -e "${DIM}──────────${RESET}"
+
+    # Re-run without summarize flag and pipe to claude
+    "$0" "$DAYS" 2>/dev/null | claude --print "Summarize this development activity log concisely. Group related work together (e.g., all Flipper Cloud work, all Fireside work, etc.). Focus on what was accomplished, not individual commits. Be brief - aim for 5-10 bullet points max. No preamble, just the summary."
+fi
