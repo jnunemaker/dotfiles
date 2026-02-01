@@ -1,11 +1,63 @@
 #!/usr/bin/env bash
-# dev-log: Generate a development activity log from Claude Code sessions, GitHub, and Todoist
-# Usage: dev-log [days]  (default: 7 days)
+# dev-log: Generate a development activity log from GitHub, Todoist, and Honeybadger
+# Usage: dev-log [options] [days]  (default: 7 days, always includes AI summary)
 
 set -euo pipefail
 
-DAYS="${1:-7}"
-SUMMARIZE="${2:-}"  # Pass "summarize" as second arg to get AI summary
+show_help() {
+    cat << 'EOF'
+dev-log: Generate a development activity log from GitHub, Todoist, Honeybadger, and optionally Claude Code
+
+Usage: dev-log [options] [days]
+
+Arguments:
+  days    Number of days to look back (default: 7)
+
+Options:
+  h, -h, --help, help    Show this help message
+  -s, --sessions      Include Claude Code sessions (off by default)
+
+Environment Variables:
+  GITHUB_USER           GitHub username (auto-detected from gh auth)
+  TODOIST_API_TOKEN     Todoist API token (or store in ~/.config/todoist/token)
+  HONEYBADGER_API_TOKEN Honeybadger API token (or store in ~/.config/honeybadger/token)
+
+Examples:
+  dev-log              Show last 7 days of activity with AI summary
+  dev-log 14           Show last 14 days of activity with AI summary
+  dev-log --sessions   Include Claude Code sessions
+  dev-log -s 30        Show last 30 days with Claude Code sessions
+EOF
+}
+
+# Parse arguments
+DAYS=7
+SHOW_SESSIONS=false
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        h|-h|--help|help)
+            show_help
+            exit 0
+            ;;
+        -s|--sessions)
+            SHOW_SESSIONS=true
+            shift
+            ;;
+        *)
+            # Validate it's a positive integer for days
+            if [[ "$1" =~ ^[0-9]+$ ]]; then
+                DAYS="$1"
+            else
+                echo "Error: '$1' is not a valid number of days"
+                echo ""
+                show_help
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+done
 GITHUB_USER="${GITHUB_USER:-$(gh api user --jq '.login' 2>/dev/null || echo '')}"
 TODOIST_TOKEN_FILE="$HOME/.config/todoist/token"
 TODOIST_API_TOKEN="${TODOIST_API_TOKEN:-$(cat "$TODOIST_TOKEN_FILE" 2>/dev/null || echo '')}"
@@ -104,6 +156,59 @@ else
 fi
 
 # ============================================================================
+# HONEYBADGER RESOLVED FAULTS
+# ============================================================================
+
+HONEYBADGER_TOKEN_FILE="$HOME/.config/honeybadger/token"
+HONEYBADGER_API_TOKEN="${HONEYBADGER_API_TOKEN:-$(cat "$HONEYBADGER_TOKEN_FILE" 2>/dev/null || echo '')}"
+
+if [[ -z "$HONEYBADGER_API_TOKEN" ]]; then
+    echo -e "${YELLOW}Honeybadger token not set. Set HONEYBADGER_API_TOKEN or create $HONEYBADGER_TOKEN_FILE${RESET}"
+else
+    # Get all projects
+    hb_projects=$(curl -s "https://app.honeybadger.io/v2/projects" \
+        -H "Authorization: Bearer $HONEYBADGER_API_TOKEN" \
+        -H "Accept: application/json" 2>/dev/null)
+
+    if [[ -n "$hb_projects" ]] && echo "$hb_projects" | jq -e '.results' >/dev/null 2>&1; then
+        resolved_faults=""
+
+        # Iterate through each project
+        while IFS= read -r project_line; do
+            [[ -z "$project_line" ]] && continue
+            project_id=$(echo "$project_line" | cut -d'|' -f1)
+            project_name=$(echo "$project_line" | cut -d'|' -f2)
+
+            # Get resolved faults for this project
+            # Use created_after and filter by resolved status
+            faults=$(curl -s "https://app.honeybadger.io/v2/projects/$project_id/faults?resolved=true&created_after=$CUTOFF_DATE" \
+                -H "Authorization: Bearer $HONEYBADGER_API_TOKEN" \
+                -H "Accept: application/json" 2>/dev/null)
+
+            if echo "$faults" | jq -e '.results' >/dev/null 2>&1; then
+                # Extract faults resolved in our time period
+                project_faults=$(echo "$faults" | jq -r --arg cutoff "$CUTOFF_DATE" \
+                    '.results[] | select(.resolved_at != null) | select(.resolved_at >= $cutoff) | "\(.resolved_at | split("T")[0])|\(.message // .klass // "Unknown error")"' 2>/dev/null)
+
+                while IFS= read -r fault_line; do
+                    [[ -z "$fault_line" ]] && continue
+                    fault_date=$(echo "$fault_line" | cut -d'|' -f1)
+                    fault_msg=$(echo "$fault_line" | cut -d'|' -f2- | cut -c1-80)
+                    resolved_faults+="  $fault_date $project_name: $fault_msg"$'\n'
+                done <<< "$project_faults"
+            fi
+        done < <(echo "$hb_projects" | jq -r '.results[] | "\(.id)|\(.name)"' 2>/dev/null)
+
+        if [[ -n "$resolved_faults" ]]; then
+            echo -e "${GREEN}${BOLD}Honeybadger Resolved${RESET}"
+            echo -e "${DIM}────────────────────${RESET}"
+            echo "$resolved_faults" | sort -r | head -50
+            echo ""
+        fi
+    fi
+fi
+
+# ============================================================================
 # GITHUB ACTIVITY
 # ============================================================================
 
@@ -158,8 +263,10 @@ else
 fi
 
 # ============================================================================
-# CLAUDE CODE SESSIONS
+# CLAUDE CODE SESSIONS (optional)
 # ============================================================================
+
+if [[ "$SHOW_SESSIONS" == true ]]; then
 
 echo -e "${CYAN}${BOLD}Claude Code Sessions${RESET}"
 echo -e "${DIM}────────────────────${RESET}"
@@ -323,17 +430,23 @@ done < <(find_sessions) | sort -t'|' -k1,1r | while IFS='|' read -r date project
 done
 
 echo ""
+
+fi  # end SHOW_SESSIONS
+
 echo -e "${DIM}Generated at $(date '+%Y-%m-%d %H:%M:%S')${RESET}"
 
 # ============================================================================
-# AI SUMMARY (optional)
+# AI SUMMARY
 # ============================================================================
 
-if [[ "$SUMMARIZE" == "summarize" ]] || [[ "$SUMMARIZE" == "s" ]]; then
+# Skip summary if we're in a recursive call (collecting data for summary)
+if [[ -z "${_DEV_LOG_COLLECTING:-}" ]]; then
     echo ""
     echo -e "${BOLD}${MAGENTA}AI Summary${RESET}"
     echo -e "${DIM}──────────${RESET}"
 
-    # Re-run without summarize flag and pipe to claude
-    "$0" "$DAYS" 2>/dev/null | claude --print "Summarize this development activity log concisely. Group related work together (e.g., all Flipper Cloud work, all Fireside work, etc.). Focus on what was accomplished, not individual commits. Be brief - aim for 5-10 bullet points max. No preamble, just the summary."
+    # Re-run with collection flag to get raw output, pipe to claude
+    sessions_flag=""
+    [[ "$SHOW_SESSIONS" == true ]] && sessions_flag="--sessions"
+    _DEV_LOG_COLLECTING=1 "$0" $sessions_flag "$DAYS" 2>/dev/null | claude --print "Summarize this development activity log concisely. Group related work together (e.g., all Flipper Cloud work, all Fireside work, etc.). Focus on what was accomplished, not individual commits. Be brief - aim for 5-10 bullet points max. No preamble, just the summary."
 fi
