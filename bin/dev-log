@@ -101,6 +101,9 @@ else
         jq -r '.[] | select(.name | ascii_downcase == "professional") | .id' 2>/dev/null)
 
     if [[ -n "$professional_project_id" ]]; then
+        # Build a map of project_id -> project_name for easy lookup
+        project_map=$(echo "$all_projects" | jq -c 'map({key: (.id|tostring), value: .name}) | from_entries' 2>/dev/null)
+
         # Build list of project IDs: professional + all descendants (up to 3 levels deep)
         # Start with the parent
         project_ids="$professional_project_id"
@@ -139,8 +142,10 @@ else
             -d "since=$todoist_since" \
             -d "limit=200" \
             -d "annotate_items=true" 2>/dev/null | \
-            jq -r --argjson ids "$project_ids_json" \
-            '.items[]? | select(.project_id as $pid | $ids | map(. == ($pid | tostring)) | any) | "  \(.completed_at | split("T")[0]) \(.content)"' 2>/dev/null | \
+            jq -r --argjson ids "$project_ids_json" --argjson pmap "$project_map" \
+            '.items[]?
+             | select(.project_id as $pid | $ids | map(. == ($pid | tostring)) | any)
+             | "  \(.completed_at | split("T")[0]) [\(.project_id|tostring | ($pmap[.] // "Unknown"))] \(.content)"' 2>/dev/null | \
             sort -r)
 
         if [[ -n "$completed_tasks" ]]; then
