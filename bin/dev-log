@@ -93,37 +93,45 @@ if [[ -z "$TODOIST_API_TOKEN" ]]; then
     echo -e "${YELLOW}Todoist token not set. Set TODOIST_API_TOKEN to include completed tasks${RESET}"
 else
     # Get all projects to find "professional" and its subprojects
-    all_projects=$(curl -s "https://api.todoist.com/rest/v2/projects" \
+    all_projects=$(curl -s "https://api.todoist.com/api/v1/projects" \
         -H "Authorization: Bearer $TODOIST_API_TOKEN" 2>/dev/null)
 
+    # Check if API response is valid JSON with results
+    if ! echo "$all_projects" | jq -e '.results' &>/dev/null; then
+        echo -e "${YELLOW}Todoist API error fetching projects. Response: $(echo "$all_projects" | head -1)${RESET}"
+    else
+
+    # v1 API wraps projects in {"results": [...]}
+    all_projects_array=$(echo "$all_projects" | jq '.results')
+
     # Get the professional project ID
-    professional_project_id=$(echo "$all_projects" | \
+    professional_project_id=$(echo "$all_projects_array" | \
         jq -r '.[] | select(.name | ascii_downcase == "professional") | .id' 2>/dev/null)
 
     if [[ -n "$professional_project_id" ]]; then
         # Build a map of project_id -> project_name for easy lookup
-        project_map=$(echo "$all_projects" | jq -c 'map({key: (.id|tostring), value: .name}) | from_entries' 2>/dev/null)
+        project_map=$(echo "$all_projects_array" | jq -c 'map({key: (.id|tostring), value: .name}) | from_entries' 2>/dev/null)
 
         # Build list of project IDs: professional + all descendants (up to 3 levels deep)
         # Start with the parent
         project_ids="$professional_project_id"
 
         # Level 1: direct children
-        level1=$(echo "$all_projects" | jq -r --arg p "$professional_project_id" '.[] | select(.parent_id == $p) | .id' 2>/dev/null)
+        level1=$(echo "$all_projects_array" | jq -r --arg p "$professional_project_id" '.[] | select(.parent_id == $p) | .id' 2>/dev/null)
         if [[ -n "$level1" ]]; then
             project_ids="$project_ids"$'\n'"$level1"
 
             # Level 2: grandchildren
             while IFS= read -r pid; do
                 [[ -z "$pid" ]] && continue
-                level2=$(echo "$all_projects" | jq -r --arg p "$pid" '.[] | select(.parent_id == $p) | .id' 2>/dev/null)
+                level2=$(echo "$all_projects_array" | jq -r --arg p "$pid" '.[] | select(.parent_id == $p) | .id' 2>/dev/null)
                 if [[ -n "$level2" ]]; then
                     project_ids="$project_ids"$'\n'"$level2"
 
                     # Level 3: great-grandchildren
                     while IFS= read -r pid2; do
                         [[ -z "$pid2" ]] && continue
-                        level3=$(echo "$all_projects" | jq -r --arg p "$pid2" '.[] | select(.parent_id == $p) | .id' 2>/dev/null)
+                        level3=$(echo "$all_projects_array" | jq -r --arg p "$pid2" '.[] | select(.parent_id == $p) | .id' 2>/dev/null)
                         [[ -n "$level3" ]] && project_ids="$project_ids"$'\n'"$level3"
                     done <<< "$level2"
                 fi
@@ -136,27 +144,32 @@ else
         # Build JSON array of project IDs for jq filtering
         project_ids_json=$(echo "$project_ids" | jq -R -s 'split("\n") | map(select(. != ""))')
 
-        # Get all completed tasks (no project filter), then filter by our project IDs
-        completed_tasks=$(curl -s "https://api.todoist.com/sync/v9/completed/get_all" \
-            -H "Authorization: Bearer $TODOIST_API_TOKEN" \
-            -d "since=$todoist_since" \
-            -d "limit=200" \
-            -d "annotate_items=true" 2>/dev/null | \
-            jq -r --argjson ids "$project_ids_json" --argjson pmap "$project_map" \
-            '.items[]?
-             | select(.project_id as $pid | $ids | map(. == ($pid | tostring)) | any)
-             | "  \(.completed_at | split("T")[0]) [\(.project_id|tostring | ($pmap[.] // "Unknown"))] \(.content)"' 2>/dev/null | \
-            sort -r)
+        # Get all completed tasks, then filter by our project IDs
+        completed_raw=$(curl -s "https://api.todoist.com/api/v1/tasks/completed?since=$todoist_since&limit=200" \
+            -H "Authorization: Bearer $TODOIST_API_TOKEN" 2>/dev/null)
 
-        if [[ -n "$completed_tasks" ]]; then
-            echo -e "${BLUE}${BOLD}Todoist Completed (Professional)${RESET}"
-            echo -e "${DIM}─────────────────────────────────${RESET}"
-            echo "$completed_tasks"
-            echo ""
+        if ! echo "$completed_raw" | jq -e '.items' &>/dev/null; then
+            echo -e "${YELLOW}Todoist API error fetching completed tasks. Response: $(echo "$completed_raw" | head -1)${RESET}"
+        else
+            completed_tasks=$(echo "$completed_raw" | \
+                jq -r --argjson ids "$project_ids_json" --argjson pmap "$project_map" \
+                '.items[]?
+                 | select(.project_id as $pid | $ids | map(. == ($pid | tostring)) | any)
+                 | "  \(.completed_at | split("T")[0]) [\(.project_id|tostring | ($pmap[.] // "Unknown"))] \(.content)"' 2>/dev/null | \
+                sort -r)
+
+            if [[ -n "$completed_tasks" ]]; then
+                echo -e "${BLUE}${BOLD}Todoist Completed (Professional)${RESET}"
+                echo -e "${DIM}─────────────────────────────────${RESET}"
+                echo "$completed_tasks"
+                echo ""
+            fi
         fi
     else
         echo -e "${YELLOW}Todoist 'professional' project not found${RESET}"
     fi
+
+    fi  # end valid API response check
 fi
 
 # ============================================================================

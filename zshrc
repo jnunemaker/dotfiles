@@ -139,8 +139,8 @@ fi
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
-# Setup asdf so it works
-. /opt/homebrew/opt/asdf/libexec/asdf.sh
+# Setup mise so it works
+eval "$(mise activate zsh --shims)"
 
 # PASSWORD GENERATOR
 # https://blog.sleeplessbeastie.eu/2016/04/11/how-to-generate-random-password-using-command-line/
@@ -171,7 +171,7 @@ export PATH="$PATH:/Users/johnnunemaker/.lmstudio/bin"
 # Use macOS system CA bundle for Ruby/OpenSSL (asdf Ruby compiles against
 # Homebrew OpenSSL which has its own cert path that doesn't include
 # locally-trusted CAs like mkcert)
-export SSL_CERT_FILE=/etc/ssl/cert.pem
+export SSL_CERT_FILE=/opt/homebrew/etc/openssl@3/cert.pem
 
 # go install
 export PATH="$PATH:$HOME/go/bin"
