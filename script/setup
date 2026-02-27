@@ -13,6 +13,14 @@ if [ ! -d ~/.oh-my-zsh ]; then
   echo -e "\n\n"
 fi
 
+# Install custom zsh plugins
+for plugin in zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search; do
+  if [ ! -d ~/.oh-my-zsh/custom/plugins/$plugin ]; then
+    echo "Installing $plugin..."
+    git clone https://github.com/zsh-users/$plugin ~/.oh-my-zsh/custom/plugins/$plugin
+  fi
+done
+
 backup=~/.dotfiles-backup/$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 mkdir -p $backup
 

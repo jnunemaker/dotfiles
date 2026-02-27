@@ -83,6 +83,9 @@ plugins=(
   rand-quote
   yarn
   command-not-found
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+  history-substring-search
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -175,3 +178,5 @@ export SSL_CERT_FILE=/opt/homebrew/etc/openssl@3/cert.pem
 
 # go install
 export PATH="$PATH:$HOME/go/bin"
+
+export PATH="$HOME/.local/share/mise/shims:$PATH"
