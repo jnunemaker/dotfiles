@@ -171,6 +171,10 @@ source ~/.dotfiles/railway_completion
 export PATH="$PATH:/Users/johnnunemaker/.lmstudio/bin"
 # End of LM Studio CLI section
 
+# Added for gcloud sdk
+export PATH=/opt/homebrew/share/google-cloud-sdk/bin:"$PATH"
+# End of gcloud sdk
+
 # Use macOS system CA bundle for Ruby/OpenSSL (asdf Ruby compiles against
 # Homebrew OpenSSL which has its own cert path that doesn't include
 # locally-trusted CAs like mkcert)
@@ -180,3 +184,5 @@ export SSL_CERT_FILE=/opt/homebrew/etc/openssl@3/cert.pem
 export PATH="$PATH:$HOME/go/bin"
 
 export PATH="$HOME/.local/share/mise/shims:$PATH"
+
+if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi

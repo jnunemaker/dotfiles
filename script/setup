@@ -39,6 +39,12 @@ done
 
 echo -e "\n\nBacked up old dotfiles to $backup"
 
+# Install marketing skills for Claude Code
+if [ ! -d ~/.claude/skills/marketing ]; then
+  echo "Installing marketing skills for Claude Code..."
+  git clone https://github.com/coreyhaines31/marketingskills.git ~/.claude/skills/marketing
+fi
+
 if [ ! -d ~/.keyboard ]; then
   git clone https://github.com/jasonrudolph/keyboard.git ~/.keyboard
   cd ~/.keyboard
