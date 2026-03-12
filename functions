@@ -1,0 +1,32 @@
+server(){
+  if [ -f "./bin/server" ]; then
+    echo "Starting bin/server...";
+    ./bin/server
+  elif [ -f "./script/server" ]; then
+    echo "Starting script/server...";
+    ./script/server
+  elif [ -f "./bin/start" ]; then
+    echo "Starting bin/start...";
+    ./bin/start
+  elif [ -f "./bin/dev" ]; then
+    echo "Starting bin/dev...";
+    ./bin/dev
+  elif [ -f "./Procfile" ]; then
+    echo "Starting foreman from Procfile...";
+    bundle exec foreman start
+  elif [ -f "./bin/rails" ]; then
+    local port=${1:-3000}
+    echo "Starting Rails server at port $port...";
+    bin/rails server -p $port --binding=0.0.0.0
+  elif [ -f "./bin/middleman" ]; then
+    echo "Starting Middleman server...";
+    ./bin/middleman
+  elif [ -f "./package.json" ] && jq -e '.scripts.start' package.json > /dev/null; then
+    echo "Starting npm server...";
+    npm start
+  else
+    local port=${1:-8080}
+    echo "Starting static python server...";
+    python3 -m http.server $port
+  fi
+}

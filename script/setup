@@ -45,6 +45,21 @@ if [ ! -d ~/.claude/skills/marketing ]; then
   git clone https://github.com/coreyhaines31/marketingskills.git ~/.claude/skills/marketing
 fi
 
+# Install Agent Safehouse
+if [ ! -f ~/.local/bin/safehouse ]; then
+  echo "Installing Agent Safehouse..."
+  mkdir -p ~/.local/bin
+  curl -fsSL https://raw.githubusercontent.com/eugene1g/agent-safehouse/main/dist/safehouse.sh \
+    -o ~/.local/bin/safehouse
+  chmod +x ~/.local/bin/safehouse
+fi
+
+# Install summarize via Homebrew
+if ! command -v summarize &>/dev/null; then
+  echo "Installing summarize..."
+  brew install steipete/tap/summarize
+fi
+
 if [ ! -d ~/.keyboard ]; then
   git clone https://github.com/jasonrudolph/keyboard.git ~/.keyboard
   cd ~/.keyboard

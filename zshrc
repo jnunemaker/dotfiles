@@ -116,9 +116,13 @@ source $ZSH/oh-my-zsh.sh
 alias a='zed .'
 alias h='heroku'
 alias c='claude'
+alias sc='safehouse claude --dangerously-skip-permissions'
+
+# Use Claude CLI as default provider for summarize
+export SUMMARIZE_MODEL="cli/claude"
 alias zshconfig="zed ~/.zshrc"
 alias ohmyzsh="zed ~/.oh-my-zsh"
-alias ss='script/server'
+alias ss='server'
 alias sb='script/bootstrap'
 alias st='script/test'
 alias bx='be'
@@ -166,6 +170,7 @@ function on_ruby_change() {
 }
 
 source ~/.dotfiles/railway_completion
+source ~/.dotfiles/functions
 
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:/Users/johnnunemaker/.lmstudio/bin"
