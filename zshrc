@@ -191,3 +191,10 @@ export PATH="$PATH:$HOME/go/bin"
 export PATH="$HOME/.local/share/mise/shims:$PATH"
 
 if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
+
+# bun completions
+[ -s "/Users/johnnunemaker/.bun/_bun" ] && source "/Users/johnnunemaker/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
