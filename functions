@@ -30,3 +30,49 @@ server(){
     python3 -m http.server $port
   fi
 }
+
+_rails_credentials_env() {
+  # Echoes chosen env name, or empty string to signal "use default credentials".
+  # $1 = optional env arg
+  if [ -n "$1" ]; then
+    echo "$1"
+    return
+  fi
+  [ -d "./config/credentials" ] || return
+  local keys=(./config/credentials/*.key(N))
+  [ ${#keys[@]} -eq 0 ] && return
+  if [ ${#keys[@]} -eq 1 ]; then
+    basename "${keys[1]}" .key
+    return
+  fi
+  echo "Multiple credential environments found:" >&2
+  local i=1
+  for k in "${keys[@]}"; do
+    echo "  $i) $(basename "$k" .key)" >&2
+    ((i++))
+  done
+  printf "Select environment [1-%d]: " "${#keys[@]}" >&2
+  local choice
+  read -r choice
+  basename "${keys[$choice]}" .key
+}
+
+creds() {
+  [ -f "./bin/rails" ] || { echo "Not a Rails project (no bin/rails)"; return 1; }
+  local env=$(_rails_credentials_env "$1")
+  if [ -n "$env" ]; then
+    bin/rails credentials:show -e "$env"
+  else
+    bin/rails credentials:show
+  fi
+}
+
+crede() {
+  [ -f "./bin/rails" ] || { echo "Not a Rails project (no bin/rails)"; return 1; }
+  local env=$(_rails_credentials_env "$1")
+  if [ -n "$env" ]; then
+    bin/rails credentials:edit -e "$env"
+  else
+    bin/rails credentials:edit
+  fi
+}
