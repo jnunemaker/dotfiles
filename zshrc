@@ -201,3 +201,6 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 # Local overrides (not committed to dotfiles repo)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
+# workspace CLI
+export PATH="/Users/johnnunemaker/.workspace/bin:$PATH"

@@ -1,5 +1,10 @@
 server(){
-  if [ -f "./bin/server" ]; then
+  if [ -f "./.workspace" ] || \
+     { [ -f "./.conductor/conductor.json" ] && grep -q 'workspace run' "./.conductor/conductor.json"; } || \
+     { [ -f "./.superset/config.json" ] && grep -q 'workspace' "./.superset/config.json"; }; then
+    echo "Starting workspace run...";
+    workspace run
+  elif [ -f "./bin/server" ]; then
     echo "Starting bin/server...";
     ./bin/server
   elif [ -f "./script/server" ]; then
