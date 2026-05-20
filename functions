@@ -64,6 +64,10 @@ _rails_credentials_env() {
 
 creds() {
   [ -f "./bin/rails" ] || { echo "Not a Rails project (no bin/rails)"; return 1; }
+  [ $# -gt 1 ] && { echo "Usage: creds [env|--help]"; return 1; }
+  case "$1" in
+    -h|--help) bin/rails credentials:show --help; return ;;
+  esac
   local env=$(_rails_credentials_env "$1")
   if [ -n "$env" ]; then
     bin/rails credentials:show -e "$env"
@@ -74,6 +78,10 @@ creds() {
 
 crede() {
   [ -f "./bin/rails" ] || { echo "Not a Rails project (no bin/rails)"; return 1; }
+  [ $# -gt 1 ] && { echo "Usage: crede [env|--help]"; return 1; }
+  case "$1" in
+    -h|--help) bin/rails credentials:edit --help; return ;;
+  esac
   local env=$(_rails_credentials_env "$1")
   if [ -n "$env" ]; then
     bin/rails credentials:edit -e "$env"
