@@ -57,3 +57,5 @@
 	defaultBranch = main
 [delta]
 	side-by-side = true
+[credential "https://git.heroku.com"]
+	helper = !heroku git:credentials
