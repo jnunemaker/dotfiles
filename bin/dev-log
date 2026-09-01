@@ -20,6 +20,7 @@ Options:
 Environment Variables:
   GITHUB_USER         GitHub username (auto-detected from gh auth)
   TODOIST_API_TOKEN   Todoist API token (or store in ~/.config/todoist/token)
+  CODEX_BIN           Codex executable (prefers the ChatGPT bundled binary)
 
 Examples:
   dev-log              Show last 7 days of activity with AI summary
@@ -62,6 +63,16 @@ TODOIST_TOKEN_FILE="$HOME/.config/todoist/token"
 TODOIST_API_TOKEN="${TODOIST_API_TOKEN:-$(cat "$TODOIST_TOKEN_FILE" 2>/dev/null || echo '')}"
 CLAUDE_PROJECTS_DIR="$HOME/.claude/projects"
 WORK_LOGS_DIR="$HOME/claude-work-logs"
+CODEX_BIN="${CODEX_BIN:-}"
+
+if [[ -z "$CODEX_BIN" ]]; then
+    CHATGPT_CODEX_BIN="/Applications/ChatGPT.app/Contents/Resources/codex"
+    if [[ -x "$CHATGPT_CODEX_BIN" ]]; then
+        CODEX_BIN="$CHATGPT_CODEX_BIN"
+    else
+        CODEX_BIN="$(command -v codex)"
+    fi
+fi
 
 # Colors for output
 BOLD='\033[1m'
@@ -409,8 +420,17 @@ if [[ -z "${_DEV_LOG_COLLECTING:-}" ]]; then
     echo -e "${BOLD}${MAGENTA}AI Summary${RESET}"
     echo -e "${DIM}──────────${RESET}"
 
-    # Re-run with collection flag to get raw output, pipe to claude
+    # Re-run with collection flag to get raw output, pipe to Codex
     sessions_flag=""
     [[ "$SHOW_SESSIONS" == true ]] && sessions_flag="--sessions"
-    _DEV_LOG_COLLECTING=1 "$0" $sessions_flag "$DAYS" 2>/dev/null | claude --print "Summarize this development activity log concisely. Group related work together (e.g., all Flipper Cloud work, all Fireside work, etc.). Focus on what was accomplished, not individual commits. Be brief - aim for 5-10 bullet points max. No preamble, just the summary."
+    codex_error_log=$(mktemp -t dev-log-codex.XXXXXX)
+    trap 'rm -f "$codex_error_log"' EXIT
+
+    if ! _DEV_LOG_COLLECTING=1 "$0" $sessions_flag "$DAYS" 2>/dev/null | "$CODEX_BIN" exec --ephemeral --ignore-user-config --model gpt-5.6-luna -c model_reasoning_effort=low --sandbox read-only --skip-git-repo-check "Summarize this development activity log concisely. Group related work together (e.g., all Flipper Cloud work, all Fireside work, etc.). Focus on what was accomplished, not individual commits. Be brief - aim for 5-10 bullet points max. No preamble, just the summary." 2>"$codex_error_log"; then
+        cat "$codex_error_log" >&2
+        exit 1
+    fi
+
+    rm -f "$codex_error_log"
+    trap - EXIT
 fi
