@@ -65,9 +65,3 @@ if ! command -v workspace &>/dev/null; then
   echo "Installing Workspace..."
   curl -fsSL https://raw.githubusercontent.com/jnunemaker/workspace/main/install.sh | bash
 fi
-
-if [ ! -d ~/.keyboard ]; then
-  git clone https://github.com/jasonrudolph/keyboard.git ~/.keyboard
-  cd ~/.keyboard
-  script/setup
-fi
