@@ -18,8 +18,72 @@ if ! command -v brew &>/dev/null; then
   fi
 fi
 
+brew_skips=()
+cask_skips=()
+
+skip_brew_if_command_exists() {
+  local formula="$1"
+  local command_name="$2"
+
+  if command -v "$command_name" &>/dev/null && ! brew list --formula "$formula" &>/dev/null; then
+    echo "Keeping existing $command_name install; skipping Homebrew formula $formula"
+    brew_skips+=("$formula")
+  fi
+}
+
+skip_cask_if_app_exists() {
+  local cask="$1"
+  local app_name="$2"
+
+  if [ -d "/Applications/$app_name" ] || [ -d "$HOME/Applications/$app_name" ]; then
+    cask_skips+=("$cask")
+  fi
+}
+
+skip_cask_if_command_exists() {
+  local cask="$1"
+  local command_name="$2"
+
+  if command -v "$command_name" &>/dev/null && ! brew list --cask "$cask" &>/dev/null; then
+    echo "Keeping existing $command_name install; skipping Homebrew cask $cask"
+    cask_skips+=("$cask")
+  fi
+}
+
+skip_brew_if_command_exists "bun" "bun"
+
+skip_cask_if_app_exists "arc" "Arc.app"
+skip_cask_if_app_exists "chatgpt" "ChatGPT.app"
+skip_cask_if_app_exists "claude" "Claude.app"
+skip_cask_if_app_exists "codexbar" "CodexBar.app"
+skip_cask_if_app_exists "dropbox" "Dropbox.app"
+skip_cask_if_app_exists "ghostty" "Ghostty.app"
+skip_cask_if_app_exists "google-chrome" "Google Chrome.app"
+skip_cask_if_app_exists "obsidian" "Obsidian.app"
+skip_cask_if_app_exists "orbstack" "OrbStack.app"
+skip_cask_if_app_exists "slack" "Slack.app"
+skip_cask_if_app_exists "tailscale-app" "Tailscale.app"
+skip_cask_if_app_exists "wispr-flow" "Wispr Flow.app"
+skip_cask_if_app_exists "zed" "Zed.app"
+skip_cask_if_command_exists "claude-code" "claude"
+skip_cask_if_command_exists "codex" "codex"
+
 echo "Installing Homebrew packages..."
-brew bundle --no-upgrade --file="$PWD/Brewfile"
+HOMEBREW_BUNDLE_BREW_SKIP="${brew_skips[*]}" \
+  HOMEBREW_BUNDLE_CASK_SKIP="${cask_skips[*]}" \
+  brew bundle --no-upgrade --file="$PWD/Brewfile"
+
+# Install gstack for Claude Code and Codex
+gstack_dir="$HOME/.claude/skills/gstack"
+if [ ! -e "$gstack_dir" ]; then
+  echo "Installing gstack..."
+  mkdir -p "$HOME/.claude/skills"
+  git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git "$gstack_dir"
+  (cd "$gstack_dir" && ./setup)
+elif [ ! -d "$gstack_dir/.git" ]; then
+  echo "$gstack_dir exists but is not a Git checkout; cannot install gstack" >&2
+  exit 1
+fi
 
 # Install oh my zsh
 if [ ! -d ~/.oh-my-zsh ]; then
