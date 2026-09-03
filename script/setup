@@ -52,6 +52,7 @@ skip_cask_if_command_exists() {
 
 skip_brew_if_command_exists "bun" "bun"
 skip_brew_if_command_exists "node" "node"
+skip_brew_if_command_exists "mongodb-community@8.0" "mongod"
 
 skip_cask_if_app_exists "arc" "Arc.app"
 skip_cask_if_app_exists "chatgpt" "ChatGPT.app"
@@ -69,6 +70,43 @@ skip_cask_if_app_exists "wispr-flow" "Wispr Flow.app"
 skip_cask_if_app_exists "zed" "Zed.app"
 skip_cask_if_command_exists "claude-code" "claude"
 skip_cask_if_command_exists "codex" "codex"
+
+dependency_is_skipped() {
+  local dependency="$1"
+  shift
+
+  local skipped_dependency
+  for skipped_dependency in "$@"; do
+    if [ "$dependency" = "$skipped_dependency" ]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+# Homebrew 6 requires explicit trust for non-official dependencies. Keep trust
+# scoped to the exact formula and cask instead of trusting their entire taps.
+if ! dependency_is_skipped "mongodb-community@8.0" "${brew_skips[@]}"; then
+  brew trust --formula mongodb/brew/mongodb-community@8.0
+fi
+
+if ! dependency_is_skipped "codexbar" "${cask_skips[@]}"; then
+  brew trust --formula steipete/tap/codexbar
+  brew trust --cask steipete/tap/codexbar
+fi
+
+# cctop is no longer managed. Homebrew must briefly trust the exact installed
+# cask before it can remove it, after which its trust entry and tap are removed.
+if [ -d "$(brew --caskroom)/cctop" ]; then
+  brew trust --cask st0012/cctop/cctop
+  brew uninstall --cask cctop
+  brew untrust --cask st0012/cctop/cctop
+fi
+
+if brew tap | grep -q '^st0012/cctop$'; then
+  brew untap st0012/cctop
+fi
 
 echo "Installing Homebrew packages..."
 HOMEBREW_BUNDLE_BREW_SKIP="${brew_skips[*]}" \
