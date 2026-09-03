@@ -51,6 +51,7 @@ skip_cask_if_command_exists() {
 }
 
 skip_brew_if_command_exists "bun" "bun"
+skip_brew_if_command_exists "node" "node"
 
 skip_cask_if_app_exists "arc" "Arc.app"
 skip_cask_if_app_exists "chatgpt" "ChatGPT.app"

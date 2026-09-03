@@ -18,3 +18,7 @@ sign-in and macOS permission prompts.
 
 Gstack is installed from its official Git repository after its Homebrew
 dependencies are available.
+
+Git and the external tools referenced by `.gitconfig` are managed by the
+`Brewfile`, including Delta, Git LFS, GitHub CLI, Heroku CLI, and GnuPG.
+Diffity is installed globally through npm.

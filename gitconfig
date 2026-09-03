@@ -21,7 +21,7 @@
   amend = commit --amend -C HEAD
 
   # Undo the last commit, preserving the changes
-  undo = reset --soft HE
+  undo = reset --soft HEAD
 
   # Show number of commits by each contributor
   count = shortlog -sn
@@ -60,8 +60,8 @@
 [credential "https://git.heroku.com"]
 	helper = !heroku git:credentials
 [credential "https://github.com"]
-	helper = 
-	helper = !/opt/homebrew/bin/gh auth git-credential
+	helper =
+	helper = !/usr/bin/env gh auth git-credential
 [credential "https://gist.github.com"]
-	helper = 
-	helper = !/opt/homebrew/bin/gh auth git-credential
+	helper =
+	helper = !/usr/bin/env gh auth git-credential
