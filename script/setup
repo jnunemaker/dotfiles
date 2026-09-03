@@ -28,7 +28,7 @@ echo -e "Installing dotfiles..."
 # move any existing dotfiles in homedir to dotfiles_old directory, then create symlinks
 for file in *; do
   # Skip scripts and text files
-  echo $file | egrep -q '(^script$|\.txt$|\.md|\.json$)' && continue
+  echo $file | egrep -q '(^script$|^ghostty$|\.txt$|\.md|\.json$)' && continue
 
   if [ -e ~/.$file ]; then
     mv ~/.$file $backup
@@ -36,6 +36,20 @@ for file in *; do
   echo "Symlinking $file to ~/.$file"
   ln -sf $PWD/$file ~/.$file
 done
+
+ghostty_config="$PWD/ghostty/config"
+ghostty_target="$HOME/.config/ghostty/config"
+mkdir -p "$HOME/.config/ghostty"
+
+if [ -L "$ghostty_target" ] && [ "$(readlink "$ghostty_target")" = "$ghostty_config" ]; then
+  echo "Ghostty config is already symlinked"
+else
+  if [ -e "$ghostty_target" ] || [ -L "$ghostty_target" ]; then
+    mv "$ghostty_target" "$backup/ghostty-config"
+  fi
+  echo "Symlinking Ghostty config to $ghostty_target"
+  ln -sf "$ghostty_config" "$ghostty_target"
+fi
 
 echo -e "\n\nBacked up old dotfiles to $backup"
 

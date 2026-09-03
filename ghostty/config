@@ -1,0 +1,17 @@
+font-family = Fira Code
+font-size = 14
+background-opacity = 0.95
+theme = Solarized Dark Higher Contrast
+split-divider-color = #000
+unfocused-split-fill = #607277
+macos-titlebar-style = transparent
+window-subtitle = working-directory
+keybind = cmd+shift+t=prompt_surface_title
+keybind = shift+enter=text:\x1b\r
+
+bell-features = title,attention
+clipboard-paste-protection = false
+
+
+# to fix ssh via ghostty to remote servers, sometimes keys and things are weird without this
+term = xterm-256color
