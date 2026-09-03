@@ -89,6 +89,7 @@ dependency_is_skipped() {
 # scoped to the exact formula and cask instead of trusting their entire taps.
 if ! dependency_is_skipped "mongodb-community@8.0" "${brew_skips[@]}"; then
   brew trust --formula mongodb/brew/mongodb-community@8.0
+  brew trust --formula mongodb/brew/mongodb-database-tools
 fi
 
 if ! dependency_is_skipped "codexbar" "${cask_skips[@]}"; then
