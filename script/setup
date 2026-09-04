@@ -180,6 +180,33 @@ symlink_config() {
 symlink_config "$PWD/codex/AGENTS.md" "$HOME/.codex/AGENTS.md" "codex-AGENTS.md"
 symlink_config "$PWD/ghostty/config" "$HOME/.config/ghostty/config" "ghostty-config"
 
+codex_config_source="$PWD/codex/config.toml"
+codex_config_target="$HOME/.codex/config.toml"
+codex_fallback_setting=$(cat "$codex_config_source")
+touch "$codex_config_target"
+
+if grep -q '^project_doc_fallback_filenames[[:space:]]*=' "$codex_config_target"; then
+  echo "$codex_config_target already configures project document fallbacks"
+else
+  cp "$codex_config_target" "$backup/codex-config.toml"
+  codex_config_temp=$(mktemp)
+  awk -v setting="$codex_fallback_setting" '
+    !inserted && /^\[/ {
+      print setting
+      print ""
+      inserted = 1
+    }
+    { print }
+    END {
+      if (!inserted) {
+        print setting
+      }
+    }
+  ' "$codex_config_target" > "$codex_config_temp"
+  mv "$codex_config_temp" "$codex_config_target"
+  echo "Added project document fallbacks to $codex_config_target"
+fi
+
 echo -e "\n\nBacked up old dotfiles to $backup"
 
 # Install marketing skills for Claude Code
