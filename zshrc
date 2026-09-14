@@ -1,6 +1,6 @@
 # If you come from bash you might have to change your $PATH.
-# /Users/johnnunemaker/.local/bin is for pipx
-export PATH=./bin:$HOME/bin:/Users/johnnunemaker/.local/bin:$PATH
+# ~/.local/bin is used by user-local installers such as Codex and Claude Code.
+export PATH=./bin:$HOME/bin:$HOME/.local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"

@@ -1,6 +1,5 @@
 tap "mongodb/brew"
 
-brew "bun"
 brew "memcached"
 brew "postgresql"
 brew "mysql"
@@ -20,9 +19,8 @@ brew "node"
 brew "todoist-cli"
 cask "arc"
 cask "chatgpt"
+# Claude desktop app; Claude Code uses its official installer in script/setup.
 cask "claude"
-cask "claude-code"
-cask "codex"
 cask "codexbar"
 cask "dropbox"
 cask "ghostty"

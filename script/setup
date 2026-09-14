@@ -4,7 +4,42 @@
 set -e
 
 # change to directory of this script
-cd $(dirname $0)/..
+cd "$(dirname "$0")/.."
+
+# Prefer first-party, user-local installers when a tool provides one. Keep
+# these paths available during setup before the managed zshrc is loaded.
+export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
+
+install_from_official_script() {
+  local command_name="$1"
+  local display_name="$2"
+  local installer_url="$3"
+  local installer
+
+  if command -v "$command_name" &>/dev/null; then
+    echo "Keeping existing $display_name install"
+    return
+  fi
+
+  echo "Installing $display_name with its official installer..."
+  installer=$(mktemp)
+
+  if ! curl -fsSL "$installer_url" -o "$installer"; then
+    rm -f "$installer"
+    return 1
+  fi
+
+  if ! /bin/bash "$installer"; then
+    rm -f "$installer"
+    return 1
+  fi
+
+  rm -f "$installer"
+}
+
+install_from_official_script "bun" "Bun" "https://bun.com/install"
+install_from_official_script "claude" "Claude Code" "https://claude.ai/install.sh"
+install_from_official_script "codex" "Codex" "https://chatgpt.com/codex/install.sh"
 
 # Install Homebrew and packages
 if ! command -v brew &>/dev/null; then
@@ -40,17 +75,6 @@ skip_cask_if_app_exists() {
   fi
 }
 
-skip_cask_if_command_exists() {
-  local cask="$1"
-  local command_name="$2"
-
-  if command -v "$command_name" &>/dev/null && ! brew list --cask "$cask" &>/dev/null; then
-    echo "Keeping existing $command_name install; skipping Homebrew cask $cask"
-    cask_skips+=("$cask")
-  fi
-}
-
-skip_brew_if_command_exists "bun" "bun"
 skip_brew_if_command_exists "node" "node"
 skip_brew_if_command_exists "mongodb-community@8.0" "mongod"
 
@@ -68,9 +92,6 @@ skip_cask_if_app_exists "slack" "Slack.app"
 skip_cask_if_app_exists "tailscale-app" "Tailscale.app"
 skip_cask_if_app_exists "wispr-flow" "Wispr Flow.app"
 skip_cask_if_app_exists "zed" "Zed.app"
-skip_cask_if_command_exists "claude-code" "claude"
-skip_cask_if_command_exists "codex" "codex"
-
 dependency_is_skipped() {
   local dependency="$1"
   shift
