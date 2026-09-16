@@ -93,6 +93,7 @@ else
     CUTOFF_TS=$(date -d "-${DAYS} days" +%s)
 fi
 
+collect_activity() {
 echo -e "${BOLD}Development Activity Log${RESET} (last $DAYS days, since $CUTOFF_DATE)"
 echo ""
 
@@ -409,28 +410,33 @@ echo ""
 fi  # end SHOW_SESSIONS
 
 echo -e "${DIM}Generated at $(date '+%Y-%m-%d %H:%M:%S')${RESET}"
+}
 
 # ============================================================================
 # AI SUMMARY
 # ============================================================================
 
-# Skip summary if we're in a recursive call (collecting data for summary)
-if [[ -z "${_DEV_LOG_COLLECTING:-}" ]]; then
-    echo ""
-    echo -e "${BOLD}${MAGENTA}AI Summary${RESET}"
-    echo -e "${DIM}──────────${RESET}"
+activity_log_file=$(mktemp -t dev-log-activity.XXXXXX)
+codex_summary_file=$(mktemp -t dev-log-summary.XXXXXX)
+trap 'rm -f "$activity_log_file" "$codex_summary_file"' EXIT
 
-    # Re-run with collection flag to get raw output, pipe to Codex
-    sessions_flag=""
-    [[ "$SHOW_SESSIONS" == true ]] && sessions_flag="--sessions"
-    codex_error_log=$(mktemp -t dev-log-codex.XXXXXX)
-    trap 'rm -f "$codex_error_log"' EXIT
+collect_activity > "$activity_log_file"
+cat "$activity_log_file"
 
-    if ! _DEV_LOG_COLLECTING=1 "$0" $sessions_flag "$DAYS" 2>/dev/null | "$CODEX_BIN" exec --ephemeral --ignore-user-config --model gpt-5.6-luna -c model_reasoning_effort=low --sandbox read-only --skip-git-repo-check "Summarize this development activity log by project or workstream. Use a short heading for each group and 1-3 specific bullets describing meaningful outcomes. Cover all significant work while consolidating repetitive or closely related commits. Aim for 12-18 substantive bullets total, favoring completeness over brevity. No preamble, just the grouped summary." 2>"$codex_error_log"; then
-        cat "$codex_error_log" >&2
-        exit 1
-    fi
+echo ""
+echo -e "${BOLD}${MAGENTA}AI Summary${RESET}"
+echo -e "${DIM}──────────${RESET}"
 
-    rm -f "$codex_error_log"
-    trap - EXIT
+if ! "$CODEX_BIN" exec --ephemeral --ignore-user-config --model gpt-5.6-luna -c model_reasoning_effort=low --sandbox read-only --skip-git-repo-check --output-last-message "$codex_summary_file" "Summarize this development activity log by project or workstream. Use a short heading for each group and 1-3 specific bullets describing meaningful outcomes. Cover all significant work while consolidating repetitive or closely related commits. Aim for 8-12 substantive bullets total, favoring completeness over brevity. No preamble, just the grouped summary." < "$activity_log_file" > /dev/null 2>/dev/null; then
+    echo "Codex failed to generate the AI summary" >&2
+    exit 1
 fi
+
+if [[ ! -s "$codex_summary_file" ]]; then
+    echo "Codex did not return an AI summary" >&2
+    exit 1
+fi
+
+cat "$codex_summary_file"
+rm -f "$activity_log_file" "$codex_summary_file"
+trap - EXIT
