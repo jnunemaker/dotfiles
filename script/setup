@@ -159,6 +159,9 @@ defaults write com.tinycast.app hotkey.togglePalette -string \
 defaults write com.tinycast.app hotkey.command:clipboard-history -string \
   '{"combo":{"_0":{"carbonKeyCode":8,"carbonModifiers":2304}}}'
 defaults write com.tinycast.app compactMode -bool true
+# Launcher aliases are keyed by bundle ID; the ChatGPT app is com.openai.codex.
+# Tinycast reads them at launch, so restart it after changing them.
+defaults write com.tinycast.app launcherAliases -dict-add com.openai.codex codex
 
 # Install Claude Code plugins from the official marketplace. Cloudflare and
 # PlanetScale bring their hosted MCP servers, which sign in with OAuth on first
