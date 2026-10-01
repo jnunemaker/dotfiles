@@ -160,6 +160,16 @@ defaults write com.tinycast.app hotkey.command:clipboard-history -string \
   '{"combo":{"_0":{"carbonKeyCode":8,"carbonModifiers":2304}}}'
 defaults write com.tinycast.app compactMode -bool true
 defaults write com.tinycast.app clipboardRetentionDays -int 365
+
+# Never record clipboard copies made in 1Password. Until the list is first
+# saved, Tinycast falls back to excluding Keychain Access and Passwords, so
+# write those too; otherwise add 1Password without disturbing other entries.
+if ! defaults read com.tinycast.app clipboardDisabledApps &>/dev/null; then
+  defaults write com.tinycast.app clipboardDisabledApps -array \
+    com.apple.keychainaccess com.apple.Passwords com.1password.1password
+elif ! defaults read com.tinycast.app clipboardDisabledApps | grep -q '"com.1password.1password"'; then
+  defaults write com.tinycast.app clipboardDisabledApps -array-add com.1password.1password
+fi
 # Launcher aliases are keyed by bundle ID; the ChatGPT app is com.openai.codex.
 # Tinycast reads them at launch, so restart it after changing them.
 defaults write com.tinycast.app launcherAliases -dict-add com.openai.codex codex
