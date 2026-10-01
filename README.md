@@ -20,8 +20,13 @@ their normal first-run sign-in and macOS permission prompts.
 Gstack is installed from its official Git repository after its Homebrew
 dependencies are available.
 
-Setup adds Cloudflare's MCP server (`cloudflare-api`) to Claude Code at user
-scope. It signs in with OAuth the first time Claude Code uses it.
+Setup installs the Cloudflare and PlanetScale Claude Code plugins, which bring
+their hosted MCP servers, and adds Cloudflare's MCP server to Codex. Each signs
+in with OAuth the first time it is used.
+
+Railway is installed with its recommended installer (`railway.com/install.sh
+--agents --local`), which also adds its agent skills and the local `railway mcp`
+server. Setup removes a Homebrew `railway` if one is present.
 
 Git and the external tools referenced by `.gitconfig` are managed by the
 `Brewfile`, including Delta, Git LFS, GitHub CLI, Heroku CLI, and GnuPG.

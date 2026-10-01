@@ -206,5 +206,5 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 export PATH="/Users/johnnunemaker/.workspace/bin:$PATH"
 
 # >>> railway initialize >>>
-[[ -f "$HOME/.railway/env" ]] && source "$HOME/.railway/env"
+source "$HOME/.railway/env"
 # <<< railway initialize <<<

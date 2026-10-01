@@ -96,6 +96,7 @@ skip_cask_if_app_exists "obsidian" "Obsidian.app"
 skip_cask_if_app_exists "orbstack" "OrbStack.app"
 skip_cask_if_app_exists "slack" "Slack.app"
 skip_cask_if_app_exists "tailscale-app" "Tailscale.app"
+skip_cask_if_app_exists "todoist-app" "Todoist.app"
 skip_cask_if_app_exists "abue-ammar/tinycast/tinycast" "Tinycast.app"
 skip_cask_if_app_exists "wispr-flow" "Wispr Flow.app"
 skip_cask_if_app_exists "zed" "Zed.app"
@@ -159,13 +160,41 @@ defaults write com.tinycast.app hotkey.command:clipboard-history -string \
   '{"combo":{"_0":{"carbonKeyCode":8,"carbonModifiers":2304}}}'
 defaults write com.tinycast.app compactMode -bool true
 
-# Install the Cloudflare MCP server for Claude Code. It authenticates with
-# OAuth on first use, so no API token is stored here.
-if claude mcp get cloudflare-api &>/dev/null; then
-  echo "Cloudflare MCP is already installed"
+# Install Claude Code plugins from the official marketplace. Cloudflare and
+# PlanetScale bring their hosted MCP servers, which sign in with OAuth on first
+# use, so no API tokens are stored here.
+if ! claude plugin marketplace list 2>/dev/null | grep -q 'claude-plugins-official'; then
+  claude plugin marketplace add anthropics/claude-plugins-official
+fi
+
+for plugin in cloudflare planetscale; do
+  if claude plugin list 2>/dev/null | grep -q "$plugin@claude-plugins-official"; then
+    echo "Claude Code plugin $plugin is already installed"
+  else
+    echo "Installing Claude Code plugin $plugin..."
+    claude plugin install --scope user "$plugin@claude-plugins-official"
+  fi
+done
+
+# Codex can't use Claude Code plugins, so add Cloudflare's MCP server directly.
+# Adding it opens Cloudflare's OAuth sign-in in the browser.
+if codex mcp get cloudflare &>/dev/null; then
+  echo "Codex Cloudflare MCP is already installed"
 else
-  echo "Installing Cloudflare MCP..."
-  claude mcp add --scope user --transport http cloudflare-api https://mcp.cloudflare.com/mcp
+  echo "Installing Cloudflare MCP for Codex..."
+  codex mcp add cloudflare --url https://mcp.cloudflare.com/mcp
+fi
+
+# Install Railway with its recommended installer, which also installs its agent
+# skills and the local Railway MCP server (`railway mcp`) for Claude Code.
+if brew list --formula railway &>/dev/null; then
+  echo "Replacing Homebrew railway with Railway's installer..."
+  brew uninstall --formula railway
+fi
+
+if [ ! -x "$HOME/.railway/bin/railway" ]; then
+  echo "Installing Railway..."
+  curl -fsSL https://railway.com/install.sh | sh -s -- --agents -y --local
 fi
 
 # Install gstack for Claude Code and Codex
