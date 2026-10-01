@@ -78,6 +78,13 @@ skip_cask_if_app_exists() {
 skip_brew_if_command_exists "node" "node"
 skip_brew_if_command_exists "mongodb-community@8.0" "mongod"
 
+# Redis Stack provides the same binaries, even if plain Redis is also installed.
+# Keep its links instead of asking Homebrew to link Redis over them.
+if brew list --cask redis-stack-server &>/dev/null && command -v redis-server &>/dev/null; then
+  echo "Keeping existing Redis Stack install; skipping Homebrew formula redis"
+  brew_skips+=("redis")
+fi
+
 skip_cask_if_app_exists "arc" "Arc.app"
 skip_cask_if_app_exists "chatgpt" "ChatGPT.app"
 skip_cask_if_app_exists "claude" "Claude.app"
