@@ -157,6 +157,7 @@ defaults write com.tinycast.app hotkey.togglePalette -string \
   '{"combo":{"_0":{"carbonKeyCode":49,"carbonModifiers":256}}}'
 defaults write com.tinycast.app hotkey.command:clipboard-history -string \
   '{"combo":{"_0":{"carbonKeyCode":8,"carbonModifiers":2304}}}'
+defaults write com.tinycast.app compactMode -bool true
 
 # Install gstack for Claude Code and Codex
 gstack_dir="$HOME/.claude/skills/gstack"
