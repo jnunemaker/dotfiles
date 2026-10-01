@@ -23,3 +23,8 @@ dependencies are available.
 Git and the external tools referenced by `.gitconfig` are managed by the
 `Brewfile`, including Delta, Git LFS, GitHub CLI, Heroku CLI, and GnuPG.
 Diffity is installed globally through npm.
+
+Setup also compiles `preferred-mic` and loads it as a LaunchAgent. It keeps the
+Shure MV7 as the default microphone whenever it is connected, even after
+Bluetooth headphones connect and macOS switches input to them. Logs are in
+`~/Library/Logs/preferred-mic.log`.

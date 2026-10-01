@@ -193,7 +193,7 @@ echo -e "Installing dotfiles..."
 # move any existing dotfiles in homedir to dotfiles_old directory, then create symlinks
 for file in *; do
   # Skip scripts and text files
-  echo $file | egrep -q '(^script$|^codex$|^ghostty$|\.txt$|\.md|\.json$)' && continue
+  echo $file | egrep -q '(^script$|^codex$|^ghostty$|^preferred-mic$|\.txt$|\.md|\.json$)' && continue
 
   if [ -e ~/.$file ]; then
     mv ~/.$file $backup
@@ -253,6 +253,28 @@ else
 fi
 
 echo -e "\n\nBacked up old dotfiles to $backup"
+
+# Keep the Shure MV7 as the default input whenever it is connected, even when
+# Bluetooth headphones like AirPods connect and macOS switches to their mic.
+preferred_mic_bin="$HOME/.local/bin/preferred-mic"
+preferred_mic_source="$PWD/preferred-mic/main.swift"
+preferred_mic_label="com.jnunemaker.preferred-mic"
+preferred_mic_plist="$HOME/Library/LaunchAgents/$preferred_mic_label.plist"
+preferred_mic_plist_temp=$(mktemp)
+sed "s|__HOME__|$HOME|g" "$PWD/preferred-mic/$preferred_mic_label.plist" > "$preferred_mic_plist_temp"
+
+if [ ! -x "$preferred_mic_bin" ] || [ "$preferred_mic_source" -nt "$preferred_mic_bin" ] ||
+  ! cmp -s "$preferred_mic_plist_temp" "$preferred_mic_plist"; then
+  echo "Installing preferred-mic..."
+  mkdir -p "$(dirname "$preferred_mic_bin")" "$HOME/Library/LaunchAgents"
+  swiftc -O "$preferred_mic_source" -o "$preferred_mic_bin"
+  mv "$preferred_mic_plist_temp" "$preferred_mic_plist"
+  launchctl bootout "gui/$(id -u)/$preferred_mic_label" 2>/dev/null || true
+  launchctl bootstrap "gui/$(id -u)" "$preferred_mic_plist"
+else
+  rm -f "$preferred_mic_plist_temp"
+  echo "preferred-mic is already installed"
+fi
 
 # Install marketing skills for Claude Code
 if [ ! -d ~/.claude/skills/marketing ]; then
