@@ -159,6 +159,15 @@ defaults write com.tinycast.app hotkey.command:clipboard-history -string \
   '{"combo":{"_0":{"carbonKeyCode":8,"carbonModifiers":2304}}}'
 defaults write com.tinycast.app compactMode -bool true
 
+# Install the Cloudflare MCP server for Claude Code. It authenticates with
+# OAuth on first use, so no API token is stored here.
+if claude mcp get cloudflare-api &>/dev/null; then
+  echo "Cloudflare MCP is already installed"
+else
+  echo "Installing Cloudflare MCP..."
+  claude mcp add --scope user --transport http cloudflare-api https://mcp.cloudflare.com/mcp
+fi
+
 # Install gstack for Claude Code and Codex
 gstack_dir="$HOME/.claude/skills/gstack"
 if [ ! -e "$gstack_dir" ]; then

@@ -20,6 +20,9 @@ their normal first-run sign-in and macOS permission prompts.
 Gstack is installed from its official Git repository after its Homebrew
 dependencies are available.
 
+Setup adds Cloudflare's MCP server (`cloudflare-api`) to Claude Code at user
+scope. It signs in with OAuth the first time Claude Code uses it.
+
 Git and the external tools referenced by `.gitconfig` are managed by the
 `Brewfile`, including Delta, Git LFS, GitHub CLI, Heroku CLI, and GnuPG.
 Diffity is installed globally through npm.
