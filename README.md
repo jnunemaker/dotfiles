@@ -7,6 +7,12 @@ git clone https://github.com/jnunemaker/dotfiles.git ~/.dotfiles
 ~/.dotfiles/script/setup
 ```
 
+Setup is silent when everything works. If a step fails, it prints what it was
+doing and that step's full output, then stops. Only steps that need you, such as
+the Homebrew installer's password prompt or Codex's Cloudflare sign-in, show
+their output as they run. If setup replaces existing files, it says where it
+moved them.
+
 Setup installs Bun, Claude Code, and Codex with their official user-local
 installers when they are missing. It then installs Homebrew when needed,
 installs missing packages from the `Brewfile` (including Git) without upgrading

@@ -1,7 +1,14 @@
 #!/bin/bash
 # Create symlinks for files in this directory in ~/
+#
+# Setup is silent when everything works. A step that fails prints what it was
+# doing and its full output, then stops setup. Only steps that need you, such as
+# a password prompt or a browser sign-in, show their output as they run.
 
-set -e
+set -eE
+
+# Anything that fails outside `quietly` still says where setup stopped.
+trap 'echo "✗ setup failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 
 # change to directory of this script
 cd "$(dirname "$0")/.."
@@ -10,40 +17,49 @@ cd "$(dirname "$0")/.."
 # these paths available during setup before the managed zshrc is loaded.
 export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
 
+# Run a step with its output hidden, showing that output only if it fails.
+# Stdin is closed so a step that unexpectedly prompts fails instead of hanging
+# invisibly; sudo still prompts, because it reads the terminal directly.
+quietly() {
+  local description="$1"
+  shift
+  local log
+  log=$(mktemp)
+
+  if ! "$@" >"$log" 2>&1 </dev/null; then
+    trap - ERR
+    echo "✗ $description failed:" >&2
+    sed 's/^/    /' "$log" >&2
+    rm -f "$log"
+    exit 1
+  fi
+
+  rm -f "$log"
+}
+
+# Run a shell pipeline (such as `curl … | sh`) quietly, failing if any part fails.
+quietly_sh() {
+  local description="$1"
+  quietly "$description" /bin/bash -o pipefail -c "$2"
+}
+
 install_from_official_script() {
   local command_name="$1"
   local display_name="$2"
   local installer_url="$3"
-  local installer
 
-  if command -v "$command_name" &>/dev/null; then
-    echo "Keeping existing $display_name install"
-    return
+  if ! command -v "$command_name" &>/dev/null; then
+    quietly_sh "Installing $display_name" "curl -fsSL '$installer_url' | /bin/bash"
   fi
-
-  echo "Installing $display_name with its official installer..."
-  installer=$(mktemp)
-
-  if ! curl -fsSL "$installer_url" -o "$installer"; then
-    rm -f "$installer"
-    return 1
-  fi
-
-  if ! /bin/bash "$installer"; then
-    rm -f "$installer"
-    return 1
-  fi
-
-  rm -f "$installer"
 }
 
 install_from_official_script "bun" "Bun" "https://bun.com/install"
 install_from_official_script "claude" "Claude Code" "https://claude.ai/install.sh"
 install_from_official_script "codex" "Codex" "https://chatgpt.com/codex/install.sh"
 
-# Install Homebrew and packages
+# Install Homebrew. Its installer asks for your password and confirmation, so it
+# runs visibly; it only runs on a Mac without Homebrew.
 if ! command -v brew &>/dev/null; then
-  echo "Installing Homebrew..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
   if [ -x /opt/homebrew/bin/brew ]; then
@@ -61,7 +77,6 @@ skip_brew_if_command_exists() {
   local command_name="$2"
 
   if command -v "$command_name" &>/dev/null && ! brew list --formula "$formula" &>/dev/null; then
-    echo "Keeping existing $command_name install; skipping Homebrew formula $formula"
     brew_skips+=("$formula")
   fi
 }
@@ -81,7 +96,6 @@ skip_brew_if_command_exists "mongodb-community@8.0" "mongod"
 # Redis Stack provides the same binaries, even if plain Redis is also installed.
 # Keep its links instead of asking Homebrew to link Redis over them.
 if brew list --cask redis-stack-server &>/dev/null && command -v redis-server &>/dev/null; then
-  echo "Keeping existing Redis Stack install; skipping Homebrew formula redis"
   brew_skips+=("redis")
 fi
 
@@ -117,40 +131,41 @@ dependency_is_skipped() {
 # Homebrew 6 requires explicit trust for non-official dependencies. Keep trust
 # scoped to the exact formula and cask instead of trusting their entire taps.
 if ! dependency_is_skipped "mongodb-community@8.0" "${brew_skips[@]}"; then
-  brew trust --formula mongodb/brew/mongodb-community@8.0
-  brew trust --formula mongodb/brew/mongodb-database-tools
+  quietly "Trusting MongoDB formula" brew trust --formula mongodb/brew/mongodb-community@8.0
+  quietly "Trusting MongoDB tools formula" brew trust --formula mongodb/brew/mongodb-database-tools
 fi
 
 if ! dependency_is_skipped "codexbar" "${cask_skips[@]}"; then
-  brew trust --formula steipete/tap/codexbar
-  brew trust --cask steipete/tap/codexbar
+  quietly "Trusting CodexBar formula" brew trust --formula steipete/tap/codexbar
+  quietly "Trusting CodexBar cask" brew trust --cask steipete/tap/codexbar
 fi
 
 if ! dependency_is_skipped "abue-ammar/tinycast/tinycast" "${cask_skips[@]}"; then
-  brew trust --cask abue-ammar/tinycast/tinycast
+  quietly "Trusting Tinycast cask" brew trust --cask abue-ammar/tinycast/tinycast
 fi
 
 # cctop is no longer managed. Homebrew must briefly trust the exact installed
 # cask before it can remove it, after which its trust entry and tap are removed.
 if [ -d "$(brew --caskroom)/cctop" ]; then
-  brew trust --cask st0012/cctop/cctop
-  brew uninstall --cask cctop
-  brew untrust --cask st0012/cctop/cctop
+  quietly "Trusting cctop for removal" brew trust --cask st0012/cctop/cctop
+  quietly "Removing cctop" brew uninstall --cask cctop
+  quietly "Untrusting cctop" brew untrust --cask st0012/cctop/cctop
 fi
 
 if brew tap | grep -q '^st0012/cctop$'; then
-  brew untap st0012/cctop
+  quietly "Removing the cctop tap" brew untap st0012/cctop
 fi
 
-echo "Installing Homebrew packages..."
-HOMEBREW_BUNDLE_BREW_SKIP="${brew_skips[*]}" \
+quietly "Installing Homebrew packages from the Brewfile" \
+  env HOMEBREW_BUNDLE_BREW_SKIP="${brew_skips[*]}" \
   HOMEBREW_BUNDLE_CASK_SKIP="${cask_skips[*]}" \
   brew bundle --no-upgrade --file="$PWD/Brewfile"
 
 # Free ⌘Space for Tinycast by disabling Spotlight's shortcut (symbolic hotkey 64).
 defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 \
   "<dict><key>enabled</key><false/><key>value</key><dict><key>parameters</key><array><integer>32</integer><integer>49</integer><integer>1048576</integer></array><key>type</key><string>standard</string></dict></dict>"
-/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+quietly "Applying keyboard shortcut changes" \
+  /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
 
 # Tinycast hotkeys are JSON-encoded Carbon key codes and modifiers (⌘ = 256, ⌥ = 2048).
 # ⌘Space opens Tinycast; ⌘⌥C opens clipboard history.
@@ -190,113 +205,106 @@ defaults write com.tinycast.app launcherAliases -dict-add com.openai.codex codex
 # PlanetScale bring their hosted MCP servers, which sign in with OAuth on first
 # use, so no API tokens are stored here.
 if ! claude plugin marketplace list 2>/dev/null | grep -q 'claude-plugins-official'; then
-  claude plugin marketplace add anthropics/claude-plugins-official
+  quietly "Adding the official Claude Code plugin marketplace" \
+    claude plugin marketplace add anthropics/claude-plugins-official
 fi
 
 for plugin in cloudflare planetscale; do
-  if claude plugin list 2>/dev/null | grep -q "$plugin@claude-plugins-official"; then
-    echo "Claude Code plugin $plugin is already installed"
-  else
-    echo "Installing Claude Code plugin $plugin..."
-    claude plugin install --scope user "$plugin@claude-plugins-official"
+  if ! claude plugin list 2>/dev/null | grep -q "$plugin@claude-plugins-official"; then
+    quietly "Installing Claude Code plugin $plugin" \
+      claude plugin install --scope user "$plugin@claude-plugins-official"
   fi
 done
 
 # Codex can't use Claude Code plugins, so add Cloudflare's MCP server directly.
-# Adding it opens Cloudflare's OAuth sign-in in the browser.
-if codex mcp get cloudflare &>/dev/null; then
-  echo "Codex Cloudflare MCP is already installed"
-else
-  echo "Installing Cloudflare MCP for Codex..."
+# Adding it opens Cloudflare's OAuth sign-in in the browser, so it runs visibly.
+if ! codex mcp get cloudflare &>/dev/null; then
   codex mcp add cloudflare --url https://mcp.cloudflare.com/mcp
 fi
 
 # Install mise with its official installer, which is faster than Homebrew's
 # formula and can update itself. Installed tools are kept across the switch.
 if brew list --formula mise &>/dev/null; then
-  echo "Replacing Homebrew mise with its official installer..."
-  brew uninstall --formula mise
+  quietly "Removing Homebrew mise" brew uninstall --formula mise
 fi
 
 if [ ! -x "$HOME/.local/bin/mise" ]; then
-  echo "Installing mise..."
-  curl -fsSL https://mise.run | sh
+  quietly_sh "Installing mise" "curl -fsSL https://mise.run | sh"
 fi
 
 # Install Railway with its recommended installer, which also installs its agent
 # skills and the local Railway MCP server (`railway mcp`) for Claude Code.
 if brew list --formula railway &>/dev/null; then
-  echo "Replacing Homebrew railway with Railway's installer..."
-  brew uninstall --formula railway
+  quietly "Removing Homebrew railway" brew uninstall --formula railway
 fi
 
 if [ ! -x "$HOME/.railway/bin/railway" ]; then
-  echo "Installing Railway..."
-  curl -fsSL https://railway.com/install.sh | sh -s -- --agents -y --local
+  quietly_sh "Installing Railway" \
+    "curl -fsSL https://railway.com/install.sh | sh -s -- --agents -y --local"
 fi
 
 # Install gstack for Claude Code and Codex
 gstack_dir="$HOME/.claude/skills/gstack"
 if [ ! -e "$gstack_dir" ]; then
-  echo "Installing gstack..."
   mkdir -p "$HOME/.claude/skills"
-  git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git "$gstack_dir"
-  (cd "$gstack_dir" && ./setup)
+  quietly "Cloning gstack" \
+    git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git "$gstack_dir"
+  quietly_sh "Setting up gstack" "cd '$gstack_dir' && ./setup"
 elif [ ! -d "$gstack_dir/.git" ]; then
-  echo "$gstack_dir exists but is not a Git checkout; cannot install gstack" >&2
+  trap - ERR
+  echo "✗ $gstack_dir exists but is not a Git checkout; cannot install gstack" >&2
   exit 1
 fi
 
-# Install oh my zsh
+# Install oh my zsh. Unattended, so it neither changes the login shell nor
+# starts a new zsh; the dotfiles provide ~/.zshrc below.
 if [ ! -d ~/.oh-my-zsh ]; then
-  echo "Installing oh-my-zsh..."
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-  echo -e "\n\n"
+  quietly_sh "Installing oh-my-zsh" \
+    'curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s -- --unattended --keep-zshrc'
 fi
 
 # Install custom zsh plugins
 for plugin in zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search; do
   if [ ! -d ~/.oh-my-zsh/custom/plugins/$plugin ]; then
-    echo "Installing $plugin..."
-    git clone https://github.com/zsh-users/$plugin ~/.oh-my-zsh/custom/plugins/$plugin
+    quietly "Installing zsh plugin $plugin" \
+      git clone https://github.com/zsh-users/$plugin ~/.oh-my-zsh/custom/plugins/$plugin
   fi
 done
 
+# Replaced files are moved here. The folder is only created when something is
+# actually replaced, and setup says so at the end.
 backup=~/.dotfiles-backup/$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-mkdir -p $backup
 
-echo -e "Installing dotfiles..."
-# move any existing dotfiles in homedir to dotfiles_old directory, then create symlinks
-for file in *; do
-  # Skip scripts and text files
-  echo $file | egrep -q '(^script$|^codex$|^ghostty$|^preferred-mic$|^mise$|\.txt$|\.md|\.json$)' && continue
-
-  if [ -e ~/.$file ]; then
-    mv ~/.$file $backup
-  fi
-  echo "Symlinking $file to ~/.$file"
-  ln -sf $PWD/$file ~/.$file
-done
+move_to_backup() {
+  mkdir -p "$backup"
+  mv "$1" "$backup/$2"
+}
 
 symlink_config() {
   local source="$1"
   local target="$2"
   local backup_name="$3"
 
-  mkdir -p "$(dirname "$target")"
-
   if [ -L "$target" ] && [ "$(readlink "$target")" = "$source" ]; then
-    echo "$target is already symlinked"
     return
   fi
 
+  mkdir -p "$(dirname "$target")"
+
   if [ -e "$target" ] || [ -L "$target" ]; then
-    mv "$target" "$backup/$backup_name"
+    move_to_backup "$target" "$backup_name"
   fi
 
-  echo "Symlinking $source to $target"
-  ln -sf "$source" "$target"
+  ln -s "$source" "$target"
 }
+
+# Symlink each managed dotfile into ~/, moving anything already there aside.
+for file in *; do
+  # Skip scripts and text files
+  echo $file | egrep -q '(^script$|^codex$|^ghostty$|^preferred-mic$|^mise$|\.txt$|\.md|\.json$)' && continue
+
+  symlink_config "$PWD/$file" "$HOME/.$file" "$file"
+done
 
 symlink_config "$PWD/codex/AGENTS.md" "$HOME/.codex/AGENTS.md" "codex-AGENTS.md"
 symlink_config "$PWD/ghostty/config" "$HOME/.config/ghostty/config" "ghostty-config"
@@ -305,8 +313,7 @@ symlink_config "$PWD/mise/config.toml" "$HOME/.config/mise/config.toml" "mise-co
 # Global tool versions live in the mise config above. A leftover asdf-style
 # ~/.tool-versions would override them, so move it to the backup.
 if [ -f "$HOME/.tool-versions" ] && [ ! -L "$HOME/.tool-versions" ]; then
-  echo "Moving ~/.tool-versions to $backup; mise/config.toml sets global versions"
-  mv "$HOME/.tool-versions" "$backup/tool-versions"
+  move_to_backup "$HOME/.tool-versions" "tool-versions"
 fi
 
 codex_config_source="$PWD/codex/config.toml"
@@ -314,9 +321,8 @@ codex_config_target="$HOME/.codex/config.toml"
 codex_fallback_setting=$(cat "$codex_config_source")
 touch "$codex_config_target"
 
-if grep -q '^project_doc_fallback_filenames[[:space:]]*=' "$codex_config_target"; then
-  echo "$codex_config_target already configures project document fallbacks"
-else
+if ! grep -q '^project_doc_fallback_filenames[[:space:]]*=' "$codex_config_target"; then
+  mkdir -p "$backup"
   cp "$codex_config_target" "$backup/codex-config.toml"
   codex_config_temp=$(mktemp)
   awk -v setting="$codex_fallback_setting" '
@@ -333,13 +339,9 @@ else
     }
   ' "$codex_config_target" > "$codex_config_temp"
   mv "$codex_config_temp" "$codex_config_target"
-  echo "Added project document fallbacks to $codex_config_target"
 fi
 
-echo -e "\n\nBacked up old dotfiles to $backup"
-
-echo "Installing global tools with mise..."
-"$HOME/.local/bin/mise" install
+quietly "Installing global tools with mise" "$HOME/.local/bin/mise" install
 
 # Keep the Shure MV7 as the default input whenever it is connected, even when
 # Bluetooth headphones like AirPods connect and macOS switches to their mic.
@@ -352,46 +354,48 @@ sed "s|__HOME__|$HOME|g" "$PWD/preferred-mic/$preferred_mic_label.plist" > "$pre
 
 if [ ! -x "$preferred_mic_bin" ] || [ "$preferred_mic_source" -nt "$preferred_mic_bin" ] ||
   ! cmp -s "$preferred_mic_plist_temp" "$preferred_mic_plist"; then
-  echo "Installing preferred-mic..."
   mkdir -p "$(dirname "$preferred_mic_bin")" "$HOME/Library/LaunchAgents"
-  swiftc -O "$preferred_mic_source" -o "$preferred_mic_bin"
+  quietly "Compiling preferred-mic" swiftc -O "$preferred_mic_source" -o "$preferred_mic_bin"
   mv "$preferred_mic_plist_temp" "$preferred_mic_plist"
   launchctl bootout "gui/$(id -u)/$preferred_mic_label" 2>/dev/null || true
-  launchctl bootstrap "gui/$(id -u)" "$preferred_mic_plist"
+  quietly "Loading the preferred-mic LaunchAgent" \
+    launchctl bootstrap "gui/$(id -u)" "$preferred_mic_plist"
 else
   rm -f "$preferred_mic_plist_temp"
-  echo "preferred-mic is already installed"
 fi
 
 # Install marketing skills for Claude Code
 if [ ! -d ~/.claude/skills/marketing ]; then
-  echo "Installing marketing skills for Claude Code..."
-  git clone https://github.com/coreyhaines31/marketingskills.git ~/.claude/skills/marketing
+  quietly "Installing marketing skills for Claude Code" \
+    git clone https://github.com/coreyhaines31/marketingskills.git ~/.claude/skills/marketing
 fi
 
 # Install Agent Safehouse
 if [ ! -f ~/.local/bin/safehouse ]; then
-  echo "Installing Agent Safehouse..."
   mkdir -p ~/.local/bin
-  curl -fsSL https://raw.githubusercontent.com/eugene1g/agent-safehouse/main/dist/safehouse.sh \
+  quietly "Installing Agent Safehouse" \
+    curl -fsSL https://raw.githubusercontent.com/eugene1g/agent-safehouse/main/dist/safehouse.sh \
     -o ~/.local/bin/safehouse
   chmod +x ~/.local/bin/safehouse
 fi
 
 # Install summarize via Homebrew
 if ! command -v summarize &>/dev/null; then
-  echo "Installing summarize..."
-  brew install steipete/tap/summarize
+  quietly "Installing summarize" brew install steipete/tap/summarize
 fi
 
 # Install Workspace
 if ! command -v workspace &>/dev/null; then
-  echo "Installing Workspace..."
-  curl -fsSL https://raw.githubusercontent.com/jnunemaker/workspace/main/install.sh | bash
+  quietly_sh "Installing Workspace" \
+    "curl -fsSL https://raw.githubusercontent.com/jnunemaker/workspace/main/install.sh | bash"
 fi
 
 if [ ! -d ~/.keyboard ]; then
-  git clone https://github.com/jasonrudolph/keyboard.git ~/.keyboard
-  cd ~/.keyboard
-  script/setup
+  quietly "Cloning keyboard" git clone https://github.com/jasonrudolph/keyboard.git ~/.keyboard
+  quietly_sh "Setting up keyboard" "cd ~/.keyboard && script/setup"
+fi
+
+# Files that were replaced are worth knowing about every time it happens.
+if [ -d "$backup" ]; then
+  echo "Moved replaced files to $backup"
 fi
