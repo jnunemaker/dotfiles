@@ -159,6 +159,7 @@ defaults write com.tinycast.app hotkey.togglePalette -string \
 defaults write com.tinycast.app hotkey.command:clipboard-history -string \
   '{"combo":{"_0":{"carbonKeyCode":8,"carbonModifiers":2304}}}'
 defaults write com.tinycast.app compactMode -bool true
+defaults write com.tinycast.app clipboardRetentionDays -int 365
 # Launcher aliases are keyed by bundle ID; the ChatGPT app is com.openai.codex.
 # Tinycast reads them at launch, so restart it after changing them.
 defaults write com.tinycast.app launcherAliases -dict-add com.openai.codex codex
