@@ -185,6 +185,18 @@ else
   codex mcp add cloudflare --url https://mcp.cloudflare.com/mcp
 fi
 
+# Install mise with its official installer, which is faster than Homebrew's
+# formula and can update itself. Installed tools are kept across the switch.
+if brew list --formula mise &>/dev/null; then
+  echo "Replacing Homebrew mise with its official installer..."
+  brew uninstall --formula mise
+fi
+
+if [ ! -x "$HOME/.local/bin/mise" ]; then
+  echo "Installing mise..."
+  curl -fsSL https://mise.run | sh
+fi
+
 # Install Railway with its recommended installer, which also installs its agent
 # skills and the local Railway MCP server (`railway mcp`) for Claude Code.
 if brew list --formula railway &>/dev/null; then
@@ -231,7 +243,7 @@ echo -e "Installing dotfiles..."
 # move any existing dotfiles in homedir to dotfiles_old directory, then create symlinks
 for file in *; do
   # Skip scripts and text files
-  echo $file | egrep -q '(^script$|^codex$|^ghostty$|^preferred-mic$|\.txt$|\.md|\.json$)' && continue
+  echo $file | egrep -q '(^script$|^codex$|^ghostty$|^preferred-mic$|^mise$|\.txt$|\.md|\.json$)' && continue
 
   if [ -e ~/.$file ]; then
     mv ~/.$file $backup
@@ -262,6 +274,14 @@ symlink_config() {
 
 symlink_config "$PWD/codex/AGENTS.md" "$HOME/.codex/AGENTS.md" "codex-AGENTS.md"
 symlink_config "$PWD/ghostty/config" "$HOME/.config/ghostty/config" "ghostty-config"
+symlink_config "$PWD/mise/config.toml" "$HOME/.config/mise/config.toml" "mise-config.toml"
+
+# Global tool versions live in the mise config above. A leftover asdf-style
+# ~/.tool-versions would override them, so move it to the backup.
+if [ -f "$HOME/.tool-versions" ] && [ ! -L "$HOME/.tool-versions" ]; then
+  echo "Moving ~/.tool-versions to $backup; mise/config.toml sets global versions"
+  mv "$HOME/.tool-versions" "$backup/tool-versions"
+fi
 
 codex_config_source="$PWD/codex/config.toml"
 codex_config_target="$HOME/.codex/config.toml"
@@ -291,6 +311,9 @@ else
 fi
 
 echo -e "\n\nBacked up old dotfiles to $backup"
+
+echo "Installing global tools with mise..."
+"$HOME/.local/bin/mise" install
 
 # Keep the Shure MV7 as the default input whenever it is connected, even when
 # Bluetooth headphones like AirPods connect and macOS switches to their mic.

@@ -180,7 +180,7 @@ export PATH="$PATH:/Users/johnnunemaker/.lmstudio/bin"
 export PATH=/opt/homebrew/share/google-cloud-sdk/bin:"$PATH"
 # End of gcloud sdk
 
-# Use macOS system CA bundle for Ruby/OpenSSL (asdf Ruby compiles against
+# Use macOS system CA bundle for Ruby/OpenSSL (mise Ruby compiles against
 # Homebrew OpenSSL which has its own cert path that doesn't include
 # locally-trusted CAs like mkcert)
 export SSL_CERT_FILE=/opt/homebrew/etc/openssl@3/cert.pem

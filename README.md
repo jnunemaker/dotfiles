@@ -28,8 +28,15 @@ Railway is installed with its recommended installer (`railway.com/install.sh
 --agents --local`), which also adds its agent skills and the local `railway mcp`
 server. Setup removes a Homebrew `railway` if one is present.
 
+mise manages language versions and is installed with its official installer
+(`mise.run`) into `~/.local/bin`; setup replaces a Homebrew `mise` if one is
+present. Global versions live in `mise/config.toml`, which setup links to
+`~/.config/mise/config.toml` before running `mise install`. A leftover
+`~/.tool-versions` is moved to the backup so it cannot override them. Projects
+still pick their own versions from `.tool-versions` or `.ruby-version`.
+
 Git and the external tools referenced by `.gitconfig` are managed by the
-`Brewfile`, including Delta, Git LFS, GitHub CLI, Heroku CLI, and GnuPG.
+`Brewfile`, including Delta (the pager), hunk (for reviewing agent changes), Git LFS, GitHub CLI, Heroku CLI, and GnuPG.
 Diffity is installed globally through npm.
 
 ## Preferred microphone
