@@ -9,9 +9,9 @@ git clone https://github.com/jnunemaker/dotfiles.git ~/.dotfiles
 
 Setup is silent when everything works. If a step fails, it prints what it was
 doing and that step's full output, then stops. Only steps that need you, such as
-the Homebrew installer's password prompt or Codex's Cloudflare and Honeybadger
-sign-ins, show
-their output as they run. If setup replaces existing files, it says where it
+the Homebrew installer's password prompt or Codex's Cloudflare, Honeybadger, and
+Help Scout sign-ins and the one-time Jelly API token prompt, show their output as
+they run. If setup replaces existing files, it says where it
 moved them.
 
 Setup installs Bun, Claude Code, and Codex with their official user-local
@@ -29,12 +29,21 @@ dependencies are available.
 
 Setup installs the Cloudflare and PlanetScale Claude Code plugins, which bring
 their hosted MCP servers, and adds Cloudflare's MCP server to Codex. It also
-adds Honeybadger's hosted MCP server to both Claude Code and Codex. Each signs
+adds the hosted Honeybadger and Help Scout (read-only) MCP servers to both
+Claude Code and Codex. Each signs
 in with OAuth the first time it is used. A Honeybadger sign-in grants a single
 account and all its projects, so there is one server per account:
 `honeybadger-boxout` (Box Out Sports), `honeybadger-nunes` (Nunes), and
 `honeybadger-verygood` (Very Good Software). Pick the matching account when each
 one signs in.
+
+Jelly's hosted MCP server (`jelly`) has no OAuth and takes an API token instead
+(create one in Jelly under Settings → API Tokens). Setup reads it from that
+Mac's login Keychain (`jelly-api-token`), then from `JELLY_API_TOKEN`, then asks
+when run in a terminal, and saves it to the Keychain. With no token it skips
+Jelly with a note instead of waiting, so setup never hangs on it. Setup then gives it to Claude Code and Codex as a bearer
+header in their local configs, never in this repo. To change the token, delete
+the Keychain item and the `jelly` server from both tools, then rerun setup.
 
 Railway is installed with its recommended installer (`railway.com/install.sh
 --agents --local`), which also adds its agent skills and the local `railway mcp`

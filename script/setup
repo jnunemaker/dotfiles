@@ -222,6 +222,12 @@ if ! codex mcp get cloudflare &>/dev/null; then
   codex mcp add cloudflare --url https://mcp.cloudflare.com/mcp
 fi
 
+# Whether Claude Code has a user-scoped MCP server. Reading ~/.claude.json is
+# instant, while `claude mcp get` connects to the server and takes seconds.
+claude_has_mcp() {
+  plutil -extract "mcpServers.$1" json -o /dev/null "$HOME/.claude.json" 2>/dev/null
+}
+
 # Add Honeybadger's hosted MCP server to Claude Code and Codex. It signs in with
 # OAuth, so no API token is stored here. Each sign-in grants a single
 # Honeybadger account (and all of its projects), so there is one server per
@@ -233,7 +239,7 @@ honeybadger_mcp_url="https://mcp.honeybadger.io/mcp"
 for account in boxout nunes verygood; do
   server="honeybadger-$account"
 
-  if ! claude mcp get "$server" &>/dev/null; then
+  if ! claude_has_mcp "$server"; then
     quietly "Adding Honeybadger MCP server $server to Claude Code" \
       claude mcp add --scope user --transport http "$server" "$honeybadger_mcp_url"
   fi
@@ -243,6 +249,64 @@ for account in boxout nunes verygood; do
     codex mcp add "$server" --url "$honeybadger_mcp_url"
   fi
 done
+
+# Add Help Scout's hosted MCP server to Claude Code and Codex. It signs in with
+# OAuth as the current Help Scout user and is read-only, so no API token is
+# stored here. As with Honeybadger, Codex's sign-in runs visibly.
+helpscout_mcp_url="https://mcp.helpscout.net/mcp"
+
+if ! claude_has_mcp helpscout; then
+  quietly "Adding Help Scout MCP server to Claude Code" \
+    claude mcp add --scope user --transport http helpscout "$helpscout_mcp_url"
+fi
+
+if ! codex mcp get helpscout &>/dev/null; then
+  echo "Sign in to Help Scout for Codex's helpscout server"
+  codex mcp add helpscout --url "$helpscout_mcp_url"
+fi
+
+# Add Jelly's hosted MCP server to Claude Code and Codex. It has no OAuth and
+# takes a Jelly API token (Settings → API Tokens) on every request, so the token
+# lives in this Mac's login Keychain and is never stored in this repo. Setup
+# takes it from the Keychain, then from $JELLY_API_TOKEN, then asks when run in
+# a terminal. Without any of those it skips Jelly rather than waiting for input.
+jelly_mcp_url="https://mcp.letsjelly.com/mcp"
+codex_config="$HOME/.codex/config.toml"
+
+if ! claude_has_mcp jelly || ! grep -q '^\[mcp_servers\.jelly\]' "$codex_config" 2>/dev/null; then
+  jelly_token=$(security find-generic-password -s jelly-api-token -a "$USER" -w 2>/dev/null || true)
+
+  if [ -z "$jelly_token" ] && [ -n "$JELLY_API_TOKEN" ]; then
+    jelly_token="$JELLY_API_TOKEN"
+  fi
+
+  if [ -z "$jelly_token" ] && [ -t 0 ]; then
+    printf "Jelly API token (Settings → API Tokens in Jelly, Enter to skip): " >&2
+    read -r -s jelly_token || true
+    echo >&2
+  fi
+
+  if [ -z "$jelly_token" ]; then
+    echo "Skipping Jelly MCP: no token. Rerun with JELLY_API_TOKEN=<token> script/setup to add it."
+  else
+    security add-generic-password -U -s jelly-api-token -a "$USER" -w "$jelly_token"
+
+    if ! claude_has_mcp jelly; then
+      quietly "Adding Jelly MCP server to Claude Code" \
+        claude mcp add --scope user --transport http jelly "$jelly_mcp_url" \
+          --header "Authorization: Bearer $jelly_token"
+    fi
+
+    # codex mcp add can't set a static header, so write the server table directly.
+    if ! grep -q '^\[mcp_servers\.jelly\]' "$codex_config" 2>/dev/null; then
+      mkdir -p "$(dirname "$codex_config")"
+      printf '\n[mcp_servers.jelly]\nurl = "%s"\nhttp_headers = { Authorization = "Bearer %s" }\n' \
+        "$jelly_mcp_url" "$jelly_token" >> "$codex_config"
+    fi
+  fi
+
+  unset jelly_token
+fi
 
 # Install mise with its official installer, which is faster than Homebrew's
 # formula and can update itself. Installed tools are kept across the switch.
