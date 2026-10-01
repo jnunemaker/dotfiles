@@ -160,6 +160,18 @@ defaults write com.tinycast.app hotkey.command:clipboard-history -string \
   '{"combo":{"_0":{"carbonKeyCode":8,"carbonModifiers":2304}}}'
 defaults write com.tinycast.app compactMode -bool true
 defaults write com.tinycast.app clipboardRetentionDays -int 365
+defaults write com.tinycast.app fileSearchEnabled -bool true
+
+# AI uses the installed Claude Code and Codex CLIs, with Apple Intelligence for
+# quick actions. Tinycast stores these two settings as JSON data; API keys live
+# in the Keychain, not here.
+tinycast_write_json() {
+  defaults write com.tinycast.app "$1" -data "$(printf '%s' "$2" | xxd -p | tr -d '\n')"
+}
+defaults write com.tinycast.app aiEnabled -bool true
+defaults write com.tinycast.app aiWebSearch -bool true
+tinycast_write_json aiInstalledProviders '["claude","codex"]'
+tinycast_write_json quickActionModel '{"appleIntelligence":{}}'
 
 # Never record clipboard copies made in 1Password. Until the list is first
 # saved, Tinycast falls back to excluding Keychain Access and Passwords, so
