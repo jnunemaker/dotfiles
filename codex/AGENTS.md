@@ -1,13 +1,12 @@
 All my relevant projects are stored in ~/github. If I mention a project and you aren't sure where it is, it will be there. For example, Flipper Cloud is ~/github/flippercloud, Box Out is ~/github/boxoutsports, Paint is ~/github/paint.
 
 ## For mutating coding tasks:
-- Before editing, determine whether the current checkout is the project’s root checkout or a linked worktree, and check the current Git branch.
-- In the root checkout, stay on the current branch unless explicitly asked to change it. Working and committing directly on `main` or `master` is allowed.
-- In any linked worktree, never check out or work directly on `main` or `master`.
-- When starting work in a linked worktree, immediately create and switch to a dedicated feature branch before editing. If already on an appropriate feature branch, stay on it.
-- Follow the repository’s branch-naming convention. If none exists, use a short task slug with no agent or tool prefix.
-- If the intended branch name already exists, create a unique variation rather than switching, deleting, or overwriting the existing branch.
-- Do not create or change branches for read-only reviews, investigations, or status checks.
+- Keep the primary `~/github/<project>` checkout on `main`/`master`. Do not switch or detach that checkout for Codex work, even temporarily. Do branch work in a linked worktree.
+- Never check out `main`/`master` in a linked worktree, including for merges, pulls, or cleanup. Create linked worktrees detached from the default branch or on a feature branch.
+- Check the current Git branch before editing. In a linked worktree, if detached, create a feature branch first.
+- Follow the repository’s naming convention; otherwise use codex/<short-task-slug>.
+- Do not create a branch for read-only reviews, investigations, or status checks.
+- If already on a feature branch, stay on it.
 - Never switch, delete, or overwrite an existing branch without explicit instruction.
 
 ## Design Guidelines
