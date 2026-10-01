@@ -204,3 +204,7 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 # workspace CLI
 export PATH="/Users/johnnunemaker/.workspace/bin:$PATH"
+
+# >>> railway initialize >>>
+source "$HOME/.railway/env"
+# <<< railway initialize <<<
