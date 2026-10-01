@@ -222,6 +222,28 @@ if ! codex mcp get cloudflare &>/dev/null; then
   codex mcp add cloudflare --url https://mcp.cloudflare.com/mcp
 fi
 
+# Add Honeybadger's hosted MCP server to Claude Code and Codex. It signs in with
+# OAuth, so no API token is stored here. Each sign-in grants a single
+# Honeybadger account (and all of its projects), so there is one server per
+# account; pick the matching account when each sign-in asks. Claude Code signs
+# in from /mcp on first use; Codex opens the browser sign-in when the server is
+# added, so that runs visibly.
+honeybadger_mcp_url="https://mcp.honeybadger.io/mcp"
+
+for account in boxout nunes verygood; do
+  server="honeybadger-$account"
+
+  if ! claude mcp get "$server" &>/dev/null; then
+    quietly "Adding Honeybadger MCP server $server to Claude Code" \
+      claude mcp add --scope user --transport http "$server" "$honeybadger_mcp_url"
+  fi
+
+  if ! codex mcp get "$server" &>/dev/null; then
+    echo "Sign in to Honeybadger for Codex's $server server"
+    codex mcp add "$server" --url "$honeybadger_mcp_url"
+  fi
+done
+
 # Install mise with its official installer, which is faster than Homebrew's
 # formula and can update itself. Installed tools are kept across the switch.
 if brew list --formula mise &>/dev/null; then

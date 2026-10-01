@@ -9,7 +9,8 @@ git clone https://github.com/jnunemaker/dotfiles.git ~/.dotfiles
 
 Setup is silent when everything works. If a step fails, it prints what it was
 doing and that step's full output, then stops. Only steps that need you, such as
-the Homebrew installer's password prompt or Codex's Cloudflare sign-in, show
+the Homebrew installer's password prompt or Codex's Cloudflare and Honeybadger
+sign-ins, show
 their output as they run. If setup replaces existing files, it says where it
 moved them.
 
@@ -27,8 +28,13 @@ Gstack is installed from its official Git repository after its Homebrew
 dependencies are available.
 
 Setup installs the Cloudflare and PlanetScale Claude Code plugins, which bring
-their hosted MCP servers, and adds Cloudflare's MCP server to Codex. Each signs
-in with OAuth the first time it is used.
+their hosted MCP servers, and adds Cloudflare's MCP server to Codex. It also
+adds Honeybadger's hosted MCP server to both Claude Code and Codex. Each signs
+in with OAuth the first time it is used. A Honeybadger sign-in grants a single
+account and all its projects, so there is one server per account:
+`honeybadger-boxout` (Box Out Sports), `honeybadger-nunes` (Nunes), and
+`honeybadger-verygood` (Very Good Software). Pick the matching account when each
+one signs in.
 
 Railway is installed with its recommended installer (`railway.com/install.sh
 --agents --local`), which also adds its agent skills and the local `railway mcp`
