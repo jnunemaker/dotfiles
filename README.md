@@ -24,7 +24,22 @@ Git and the external tools referenced by `.gitconfig` are managed by the
 `Brewfile`, including Delta, Git LFS, GitHub CLI, Heroku CLI, and GnuPG.
 Diffity is installed globally through npm.
 
-Setup also compiles `preferred-mic` and loads it as a LaunchAgent. It keeps the
-Shure MV7 as the default microphone whenever it is connected, even after
-Bluetooth headphones connect and macOS switches input to them. Logs are in
-`~/Library/Logs/preferred-mic.log`.
+## Preferred microphone
+
+Setup compiles `preferred-mic` and loads it as a LaunchAgent. Whenever a Shure
+MV7 is connected, it stays the default microphone, even after AirPods or other
+Bluetooth headphones connect and macOS switches input to them. When the Shure
+is unplugged, macOS chooses the default input as usual. Audio output is left
+alone, so headphones keep playing sound.
+
+Apps that pick a specific microphone in their own settings ignore the system
+default; set them to "System default" to follow it.
+
+Switches are logged to `~/Library/Logs/preferred-mic.log`. To prefer a
+different microphone, change the name prefix in
+`preferred-mic/com.jnunemaker.preferred-mic.plist` and rerun setup. To pause
+it until the next login:
+
+```bash
+launchctl bootout gui/$(id -u)/com.jnunemaker.preferred-mic
+```
