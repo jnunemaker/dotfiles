@@ -85,11 +85,11 @@ skip_cask_if_app_exists "codexbar" "CodexBar.app"
 skip_cask_if_app_exists "dropbox" "Dropbox.app"
 skip_cask_if_app_exists "ghostty" "Ghostty.app"
 skip_cask_if_app_exists "google-chrome" "Google Chrome.app"
-skip_cask_if_app_exists "maccy" "Maccy.app"
 skip_cask_if_app_exists "obsidian" "Obsidian.app"
 skip_cask_if_app_exists "orbstack" "OrbStack.app"
 skip_cask_if_app_exists "slack" "Slack.app"
 skip_cask_if_app_exists "tailscale-app" "Tailscale.app"
+skip_cask_if_app_exists "abue-ammar/tinycast/tinycast" "Tinycast.app"
 skip_cask_if_app_exists "wispr-flow" "Wispr Flow.app"
 skip_cask_if_app_exists "zed" "Zed.app"
 dependency_is_skipped() {
@@ -118,6 +118,10 @@ if ! dependency_is_skipped "codexbar" "${cask_skips[@]}"; then
   brew trust --cask steipete/tap/codexbar
 fi
 
+if ! dependency_is_skipped "abue-ammar/tinycast/tinycast" "${cask_skips[@]}"; then
+  brew trust --cask abue-ammar/tinycast/tinycast
+fi
+
 # cctop is no longer managed. Homebrew must briefly trust the exact installed
 # cask before it can remove it, after which its trust entry and tap are removed.
 if [ -d "$(brew --caskroom)/cctop" ]; then
@@ -134,6 +138,18 @@ echo "Installing Homebrew packages..."
 HOMEBREW_BUNDLE_BREW_SKIP="${brew_skips[*]}" \
   HOMEBREW_BUNDLE_CASK_SKIP="${cask_skips[*]}" \
   brew bundle --no-upgrade --file="$PWD/Brewfile"
+
+# Free ⌘Space for Tinycast by disabling Spotlight's shortcut (symbolic hotkey 64).
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 \
+  "<dict><key>enabled</key><false/><key>value</key><dict><key>parameters</key><array><integer>32</integer><integer>49</integer><integer>1048576</integer></array><key>type</key><string>standard</string></dict></dict>"
+/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+
+# Tinycast hotkeys are JSON-encoded Carbon key codes and modifiers (⌘ = 256, ⌥ = 2048).
+# ⌘Space opens Tinycast; ⌘⌥C opens clipboard history.
+defaults write com.tinycast.app hotkey.togglePalette -string \
+  '{"combo":{"_0":{"carbonKeyCode":49,"carbonModifiers":256}}}'
+defaults write com.tinycast.app hotkey.command:clipboard-history -string \
+  '{"combo":{"_0":{"carbonKeyCode":8,"carbonModifiers":2304}}}'
 
 # Install gstack for Claude Code and Codex
 gstack_dir="$HOME/.claude/skills/gstack"
