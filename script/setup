@@ -265,48 +265,64 @@ if ! codex mcp get helpscout &>/dev/null; then
   codex mcp add helpscout --url "$helpscout_mcp_url"
 fi
 
-# Add Jelly's hosted MCP server to Claude Code and Codex. It has no OAuth and
-# takes a Jelly API token (Settings → API Tokens) on every request, so the token
-# lives in this Mac's login Keychain and is never stored in this repo. Setup
-# takes it from the Keychain, then from $JELLY_API_TOKEN, then asks when run in
-# a terminal. Without any of those it skips Jelly rather than waiting for input.
-jelly_mcp_url="https://mcp.letsjelly.com/mcp"
+# Add a hosted MCP server that has no OAuth and takes an API token as a bearer
+# header on every request. The token lives in this Mac's login Keychain and is
+# never stored in this repo. Setup takes it from the Keychain, then from the
+# given environment variable, then asks when run in a terminal. Without any of
+# those it skips the server rather than waiting for input.
+#
+#   add_token_mcp <server> <title> <url> <keychain item> <env var> <where to get one>
 codex_config="$HOME/.codex/config.toml"
 
-if ! claude_has_mcp jelly || ! grep -q '^\[mcp_servers\.jelly\]' "$codex_config" 2>/dev/null; then
-  jelly_token=$(security find-generic-password -s jelly-api-token -a "$USER" -w 2>/dev/null || true)
+codex_has_mcp() {
+  grep -q "^\[mcp_servers\.$1\]" "$codex_config" 2>/dev/null
+}
 
-  if [ -z "$jelly_token" ] && [ -n "$JELLY_API_TOKEN" ]; then
-    jelly_token="$JELLY_API_TOKEN"
+add_token_mcp() {
+  local server="$1" title="$2" url="$3" item="$4" env_var="$5" hint="$6" token
+
+  if claude_has_mcp "$server" && codex_has_mcp "$server"; then
+    return
   fi
 
-  if [ -z "$jelly_token" ] && [ -t 0 ]; then
-    printf "Jelly API token (Settings → API Tokens in Jelly, Enter to skip): " >&2
-    read -r -s jelly_token || true
+  token=$(security find-generic-password -s "$item" -a "$USER" -w 2>/dev/null || true)
+
+  if [ -z "$token" ] && [ -n "${!env_var}" ]; then
+    token="${!env_var}"
+  fi
+
+  if [ -z "$token" ] && [ -t 0 ]; then
+    printf "%s API token (%s, Enter to skip): " "$title" "$hint" >&2
+    read -r -s token || true
     echo >&2
   fi
 
-  if [ -z "$jelly_token" ]; then
-    echo "Skipping Jelly MCP: no token. Rerun with JELLY_API_TOKEN=<token> script/setup to add it."
-  else
-    security add-generic-password -U -s jelly-api-token -a "$USER" -w "$jelly_token"
-
-    if ! claude_has_mcp jelly; then
-      quietly "Adding Jelly MCP server to Claude Code" \
-        claude mcp add --scope user --transport http jelly "$jelly_mcp_url" \
-          --header "Authorization: Bearer $jelly_token"
-    fi
-
-    # codex mcp add can't set a static header, so write the server table directly.
-    if ! grep -q '^\[mcp_servers\.jelly\]' "$codex_config" 2>/dev/null; then
-      mkdir -p "$(dirname "$codex_config")"
-      printf '\n[mcp_servers.jelly]\nurl = "%s"\nhttp_headers = { Authorization = "Bearer %s" }\n' \
-        "$jelly_mcp_url" "$jelly_token" >> "$codex_config"
-    fi
+  if [ -z "$token" ]; then
+    echo "Skipping $title MCP: no token. Rerun with $env_var=<token> script/setup to add it."
+    return
   fi
 
-  unset jelly_token
-fi
+  security add-generic-password -U -s "$item" -a "$USER" -w "$token"
+
+  if ! claude_has_mcp "$server"; then
+    quietly "Adding $title MCP server to Claude Code" \
+      claude mcp add --scope user --transport http "$server" "$url" \
+        --header "Authorization: Bearer $token"
+  fi
+
+  # codex mcp add can't set a static header, so write the server table directly.
+  if ! codex_has_mcp "$server"; then
+    mkdir -p "$(dirname "$codex_config")"
+    printf '\n[mcp_servers.%s]\nurl = "%s"\nhttp_headers = { Authorization = "Bearer %s" }\n' \
+      "$server" "$url" "$token" >> "$codex_config"
+  fi
+}
+
+add_token_mcp jelly Jelly https://mcp.letsjelly.com/mcp \
+  jelly-api-token JELLY_API_TOKEN "Settings → API Tokens in Jelly"
+
+add_token_mcp fireside Fireside https://mcp.fireside.fm/mcp \
+  fireside-api-token FIRESIDE_API_TOKEN "the fire_... key from Fireside"
 
 # Install mise with its official installer, which is faster than Homebrew's
 # formula and can update itself. Installed tools are kept across the switch.
