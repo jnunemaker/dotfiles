@@ -280,12 +280,11 @@ codex_has_mcp() {
   grep -q "^\[mcp_servers\.$1\]" "$codex_config" 2>/dev/null
 }
 
-add_token_mcp() {
-  local server="$1" title="$2" url="$3" item="$4" env_var="$5" hint="$6" token
-
-  if claude_has_mcp "$server" && codex_has_mcp "$server"; then
-    return
-  fi
+# Set $token for an API token MCP server from the Keychain, the environment
+# variable, or a prompt, saving it to the Keychain. Fails with a note when there
+# is no token, so the caller can skip that server.
+find_token() {
+  local title="$1" item="$2" env_var="$3" hint="$4"
 
   token=$(security find-generic-password -s "$item" -a "$USER" -w 2>/dev/null || true)
 
@@ -301,10 +300,29 @@ add_token_mcp() {
 
   if [ -z "$token" ]; then
     echo "Skipping $title MCP: no token. Rerun with $env_var=<token> script/setup to add it."
-    return
+    return 1
   fi
 
   security add-generic-password -U -s "$item" -a "$USER" -w "$token"
+}
+
+# codex mcp add can't set a static header, so write the server table directly.
+add_codex_token_mcp() {
+  local server="$1" url="$2" token="$3"
+
+  mkdir -p "$(dirname "$codex_config")"
+  printf '\n[mcp_servers.%s]\nurl = "%s"\nhttp_headers = { Authorization = "Bearer %s" }\n' \
+    "$server" "$url" "$token" >> "$codex_config"
+}
+
+add_token_mcp() {
+  local server="$1" title="$2" url="$3" item="$4" env_var="$5" hint="$6" token
+
+  if claude_has_mcp "$server" && codex_has_mcp "$server"; then
+    return
+  fi
+
+  find_token "$title" "$item" "$env_var" "$hint" || return 0
 
   if ! claude_has_mcp "$server"; then
     quietly "Adding $title MCP server to Claude Code" \
@@ -312,11 +330,8 @@ add_token_mcp() {
         --header "Authorization: Bearer $token"
   fi
 
-  # codex mcp add can't set a static header, so write the server table directly.
   if ! codex_has_mcp "$server"; then
-    mkdir -p "$(dirname "$codex_config")"
-    printf '\n[mcp_servers.%s]\nurl = "%s"\nhttp_headers = { Authorization = "Bearer %s" }\n' \
-      "$server" "$url" "$token" >> "$codex_config"
+    add_codex_token_mcp "$server" "$url" "$token"
   fi
 }
 
@@ -325,6 +340,25 @@ add_token_mcp jelly Jelly https://mcp.letsjelly.com/mcp \
 
 add_token_mcp fireside Fireside https://mcp.fireside.fm/mcp \
   fireside-api-token FIRESIDE_API_TOKEN "the fire_... key from Fireside"
+
+# Add Ahrefs' hosted MCP server to Claude Code and Codex. Claude Code signs in
+# with OAuth from /mcp on first use. Codex refuses Ahrefs' OAuth because its
+# sign-in page is on a different host than its authorization server, so Codex
+# takes an Ahrefs MCP key (not an API v3 key) as a bearer header instead, kept
+# in the Keychain like the Jelly and Fireside tokens.
+ahrefs_mcp_url="https://api.ahrefs.com/mcp/mcp"
+
+if ! claude_has_mcp ahrefs; then
+  quietly "Adding Ahrefs MCP server to Claude Code" \
+    claude mcp add --scope user --transport http ahrefs "$ahrefs_mcp_url"
+fi
+
+if ! codex_has_mcp ahrefs && find_token Ahrefs ahrefs-mcp-key AHREFS_MCP_KEY \
+    "an MCP key from Ahrefs, not an API v3 key"; then
+  add_codex_token_mcp ahrefs "$ahrefs_mcp_url" "$token"
+fi
+
+unset token
 
 # Install mise with its official installer, which is faster than Homebrew's
 # formula and can update itself. Installed tools are kept across the switch.

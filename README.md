@@ -10,8 +10,8 @@ git clone https://github.com/jnunemaker/dotfiles.git ~/.dotfiles
 Setup is silent when everything works. If a step fails, it prints what it was
 doing and that step's full output, then stops. Only steps that need you, such as
 the Homebrew installer's password prompt or Codex's Cloudflare, Honeybadger, and
-Help Scout sign-ins and the one-time Jelly and Fireside API token prompts, show their output as
-they run. If setup replaces existing files, it says where it
+Help Scout sign-ins and the one-time Jelly, Fireside, and Ahrefs token prompts,
+show their output as they run. If setup replaces existing files, it says where it
 moved them.
 
 Setup installs Bun, Claude Code, Codex, and the T3 Code CLI (`t3`) with their
@@ -46,6 +46,12 @@ Keychain. With no token it skips that server with a note instead of waiting, so
 setup never hangs on it. Setup then gives it to Claude Code and Codex as a bearer
 header in their local configs, never in this repo. To change a token, delete the
 Keychain item and the server from both tools, then rerun setup.
+
+The hosted Ahrefs MCP server (`ahrefs`) signs in with OAuth in Claude Code (run
+`/mcp` and pick your Ahrefs workspace the first time). Codex refuses Ahrefs'
+OAuth sign-in, so Codex uses an Ahrefs MCP key instead (an MCP key, not an API
+v3 key). Setup handles it like the Jelly and Fireside tokens, using the Keychain
+item `ahrefs-mcp-key` or `AHREFS_MCP_KEY`.
 
 Railway is installed with its recommended installer (`railway.com/install.sh
 --agents --local`), which also adds its agent skills and the local `railway mcp`
