@@ -1,0 +1,25 @@
+{
+  "storageCleanup": {
+    "worktreeOnMerge": true
+  },
+  "continueThreadsAfterServerUpdate": true,
+  "defaultAutoPull": true,
+  "defaultModelSelection": {
+    "instanceId": "claudeAgent",
+    "model": "claude-opus-5-5"
+  },
+  "defaultRuntimeMode": "auto",
+  "projectSettingsFolded": true,
+  "addProjectBaseDirectory": "~/github",
+  "providers": {
+    "cursor": {
+      "enabled": false
+    },
+    "grok": {
+      "enabled": false
+    },
+    "opencode": {
+      "enabled": false
+    }
+  }
+}

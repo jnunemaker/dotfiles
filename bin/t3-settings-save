@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# t3-settings-save: Copy T3 Code's settings from this Mac into ~/.dotfiles/t3
+# so they can be committed. script/setup copies them onto the other Mac.
+
+set -euo pipefail
+
+for name in settings client-settings; do
+  jq . "$HOME/.t3/userdata/$name.json" > "$HOME/.dotfiles/t3/$name.json"
+done
+
+git -C "$HOME/.dotfiles" status --short t3

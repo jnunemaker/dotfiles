@@ -439,7 +439,7 @@ symlink_config() {
 # Symlink each managed dotfile into ~/, moving anything already there aside.
 for file in *; do
   # Skip scripts and text files
-  echo $file | egrep -q '(^script$|^codex$|^ghostty$|^preferred-mic$|^mise$|\.txt$|\.md|\.json$)' && continue
+  echo $file | egrep -q '(^script$|^codex$|^ghostty$|^preferred-mic$|^mise$|^t3$|\.txt$|\.md|\.json$)' && continue
 
   symlink_config "$PWD/$file" "$HOME/.$file" "$file"
 done
@@ -447,6 +447,26 @@ done
 symlink_config "$PWD/codex/AGENTS.md" "$HOME/.codex/AGENTS.md" "codex-AGENTS.md"
 symlink_config "$PWD/ghostty/config" "$HOME/.config/ghostty/config" "ghostty-config"
 symlink_config "$PWD/mise/config.toml" "$HOME/.config/mise/config.toml" "mise-config.toml"
+
+# T3 Code replaces its settings files when saving, which breaks symlinks, so
+# copy them in instead. Run t3-settings-save to bring app changes back here.
+for t3_settings in settings client-settings; do
+  t3_source="$PWD/t3/$t3_settings.json"
+  t3_target="$HOME/.t3/userdata/$t3_settings.json"
+
+  if [ -f "$t3_target" ] && [ ! -L "$t3_target" ] &&
+    [ "$(jq -S . "$t3_source")" = "$(jq -S . "$t3_target" 2>/dev/null)" ]; then
+    continue
+  fi
+
+  mkdir -p "$(dirname "$t3_target")"
+
+  if [ -e "$t3_target" ] || [ -L "$t3_target" ]; then
+    move_to_backup "$t3_target" "t3-$t3_settings.json"
+  fi
+
+  cp "$t3_source" "$t3_target"
+done
 
 # Global tool versions live in the mise config above. A leftover asdf-style
 # ~/.tool-versions would override them, so move it to the backup.

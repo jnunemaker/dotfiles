@@ -64,6 +64,13 @@ present. Global versions live in `mise/config.toml`, which setup links to
 `~/.tool-versions` is moved to the backup so it cannot override them. Projects
 still pick their own versions from `.tool-versions` or `.ruby-version`.
 
+T3 Code's settings live in `t3/settings.json` (server settings such as the
+default model and enabled providers) and `t3/client-settings.json` (interface
+preferences). T3 Code replaces these files when it saves, so setup copies them
+into `~/.t3/userdata/` rather than linking them, backing up any that differ.
+After changing settings in the app, run `t3-settings-save` to copy them back
+here, then commit. Sign-ins, secrets, and threads stay on each Mac.
+
 Git and the external tools referenced by `.gitconfig` are managed by the
 `Brewfile`, including Delta (the pager), hunk (for reviewing agent changes), Git LFS, GitHub CLI, Heroku CLI, and GnuPG.
 Diffity is installed globally through npm.
