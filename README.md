@@ -14,8 +14,8 @@ Help Scout sign-ins and the one-time Jelly and Fireside API token prompts, show 
 they run. If setup replaces existing files, it says where it
 moved them.
 
-Setup installs Bun, Claude Code, and Codex with their official user-local
-installers when they are missing. It then installs Homebrew when needed,
+Setup installs Bun, Claude Code, Codex, and the T3 Code CLI (`t3`) with their
+official user-local installers when they are missing. It then installs Homebrew when needed,
 installs missing packages from the `Brewfile` (including Git) without upgrading
 existing packages, and symlinks the managed configuration files.
 

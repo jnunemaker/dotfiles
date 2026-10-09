@@ -56,6 +56,7 @@ install_from_official_script() {
 install_from_official_script "bun" "Bun" "https://bun.com/install"
 install_from_official_script "claude" "Claude Code" "https://claude.ai/install.sh"
 install_from_official_script "codex" "Codex" "https://chatgpt.com/codex/install.sh"
+install_from_official_script "t3" "T3 Code CLI" "https://t3.codes/install.sh"
 
 # Install Homebrew. Its installer asks for your password and confirmation, so it
 # runs visibly; it only runs on a Mac without Homebrew.
@@ -109,6 +110,7 @@ skip_cask_if_app_exists "google-chrome" "Google Chrome.app"
 skip_cask_if_app_exists "obsidian" "Obsidian.app"
 skip_cask_if_app_exists "orbstack" "OrbStack.app"
 skip_cask_if_app_exists "slack" "Slack.app"
+skip_cask_if_app_exists "t3-code" "T3 Code (Alpha).app"
 skip_cask_if_app_exists "tailscale-app" "Tailscale.app"
 skip_cask_if_app_exists "todoist-app" "Todoist.app"
 skip_cask_if_app_exists "abue-ammar/tinycast/tinycast" "Tinycast.app"
