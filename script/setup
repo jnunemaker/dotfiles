@@ -218,10 +218,15 @@ for plugin in cloudflare planetscale; do
   fi
 done
 
-# Codex can't use Claude Code plugins, so add Cloudflare's MCP server directly.
-# Adding it opens Cloudflare's OAuth sign-in in the browser, so it runs visibly.
+# Codex can't use Claude Code plugins, so add Cloudflare's and PlanetScale's MCP
+# servers directly. Adding each opens its OAuth sign-in in the browser, so it
+# runs visibly.
 if ! codex mcp get cloudflare &>/dev/null; then
   codex mcp add cloudflare --url https://mcp.cloudflare.com/mcp
+fi
+
+if ! codex mcp get planetscale &>/dev/null; then
+  codex mcp add planetscale --url https://mcp.pscale.dev/mcp/planetscale
 fi
 
 # Whether Claude Code has a user-scoped MCP server. Reading ~/.claude.json is

@@ -28,7 +28,8 @@ Gstack is installed from its official Git repository after its Homebrew
 dependencies are available.
 
 Setup installs the Cloudflare and PlanetScale Claude Code plugins, which bring
-their hosted MCP servers, and adds Cloudflare's MCP server to Codex. It also
+their hosted MCP servers, and adds the same Cloudflare and PlanetScale MCP
+servers to Codex. It also
 adds the hosted Honeybadger and Help Scout (read-only) MCP servers to both
 Claude Code and Codex. Each signs
 in with OAuth the first time it is used. A Honeybadger sign-in grants a single
