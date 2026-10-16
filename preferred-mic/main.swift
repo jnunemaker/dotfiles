@@ -1,12 +1,20 @@
 // preferred-mic: keep a preferred microphone as the default input whenever it
 // is connected. macOS switches input to Bluetooth headsets (AirPods, Bose) when
 // they connect; this listens for device and default-input changes and switches
-// back. When the preferred mic is absent, macOS picks the default as usual.
+// back.
+//
+// When the preferred mic is absent, it still keeps input off Bluetooth
+// headphones. Using their mic drops them from stereo music into low-quality
+// headset audio, so it switches to the MacBook's mic (when the lid is open) or
+// a wired mic like a monitor's instead. With no other mic around, it leaves the
+// Bluetooth mic alone, and closing the lid with nothing else connected moves
+// input back to it rather than leaving the muted MacBook mic selected.
 //
 // Usage: preferred-mic [name-prefix]   (default: "Shure MV7")
 
 import CoreAudio
 import Foundation
+import IOKit
 
 let preferredPrefix = CommandLine.arguments.dropFirst().first ?? "Shure MV7"
 let system = AudioObjectID(kAudioObjectSystemObject)
@@ -45,6 +53,52 @@ func hasInput(_ device: AudioDeviceID) -> Bool {
   return AudioObjectGetPropertyDataSize(device, &addr, 0, nil, &size) == noErr && size > 0
 }
 
+func uint32Property(of device: AudioDeviceID, _ selector: AudioObjectPropertySelector,
+                    _ scope: AudioObjectPropertyScope = kAudioObjectPropertyScopeGlobal) -> UInt32? {
+  var addr = address(selector, scope)
+  var value: UInt32 = 0
+  var size = UInt32(MemoryLayout<UInt32>.size)
+  guard AudioObjectGetPropertyData(device, &addr, 0, nil, &size, &value) == noErr else { return nil }
+  return value
+}
+
+func transportType(of device: AudioDeviceID) -> UInt32 {
+  uint32Property(of: device, kAudioDevicePropertyTransportType) ?? 0
+}
+
+let bluetoothTransports = [kAudioDeviceTransportTypeBluetooth, kAudioDeviceTransportTypeBluetoothLE]
+// Physically connected mics. Leaves out virtual, aggregate, AirPlay, and
+// Continuity (iPhone) devices.
+let wiredTransports = [kAudioDeviceTransportTypeUSB, kAudioDeviceTransportTypeFireWire,
+                       kAudioDeviceTransportTypeThunderbolt, kAudioDeviceTransportTypePCI,
+                       kAudioDeviceTransportTypeHDMI, kAudioDeviceTransportTypeDisplayPort,
+                       kAudioDeviceTransportTypeAVB]
+let internalMicSource: UInt32 = 0x696D_6963 // 'imic'
+
+func isBluetooth(_ device: AudioDeviceID) -> Bool {
+  bluetoothTransports.contains(transportType(of: device))
+}
+
+// The MacBook's own mic. A headset on the headphone jack is also a built-in
+// device, but reports an external data source and works with the lid closed.
+func isInternalMic(_ device: AudioDeviceID) -> Bool {
+  transportType(of: device) == kAudioDeviceTransportTypeBuiltIn &&
+    uint32Property(of: device, kAudioDevicePropertyDataSource, kAudioObjectPropertyScopeInput) == internalMicSource
+}
+
+func isWired(_ device: AudioDeviceID) -> Bool {
+  let type = transportType(of: device)
+  return wiredTransports.contains(type) || (type == kAudioDeviceTransportTypeBuiltIn && !isInternalMic(device))
+}
+
+let powerRoot = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPMrootDomain"))
+
+// The MacBook's mic is cut off while the lid is closed.
+func lidClosed() -> Bool {
+  let state = IORegistryEntryCreateCFProperty(powerRoot, "AppleClamshellState" as CFString, kCFAllocatorDefault, 0)
+  return state?.takeRetainedValue() as? Bool ?? false
+}
+
 func defaultInput() -> AudioDeviceID {
   var addr = address(kAudioHardwarePropertyDefaultInputDevice)
   var id = AudioDeviceID(0)
@@ -59,17 +113,12 @@ func setDefaultInput(_ device: AudioDeviceID) -> OSStatus {
   return AudioObjectSetPropertyData(system, &addr, 0, nil, UInt32(MemoryLayout<AudioDeviceID>.size), &id)
 }
 
-func enforce() {
-  guard let preferred = deviceIDs().first(where: {
-    hasInput($0) && (name(of: $0)?.lowercased().hasPrefix(preferredPrefix.lowercased()) ?? false)
-  }) else { return }
+func switchInput(from current: AudioDeviceID, to device: AudioDeviceID) {
+  guard current != device else { return }
 
-  let current = defaultInput()
-  guard current != preferred else { return }
-
-  let status = setDefaultInput(preferred)
+  let status = setDefaultInput(device)
   let from = name(of: current) ?? "unknown"
-  let to = name(of: preferred) ?? preferredPrefix
+  let to = name(of: device) ?? "unknown"
   if status == noErr {
     log("Switched input from \(from) to \(to)")
   } else {
@@ -77,8 +126,32 @@ func enforce() {
   }
 }
 
+func enforce() {
+  let inputs = deviceIDs().filter(hasInput)
+  let current = defaultInput()
+
+  if let preferred = inputs.first(where: {
+    name(of: $0)?.lowercased().hasPrefix(preferredPrefix.lowercased()) ?? false
+  }) {
+    switchInput(from: current, to: preferred)
+    return
+  }
+
+  let closed = lidClosed()
+  let currentMuted = closed && isInternalMic(current)
+  guard isBluetooth(current) || currentMuted else { return }
+
+  let internalMic = closed ? nil : inputs.first(where: isInternalMic)
+  let wired = inputs.first(where: isWired)
+  // A muted mic is worse than headset-quality audio, so Bluetooth is the last resort.
+  let bluetooth = currentMuted ? inputs.first(where: isBluetooth) : nil
+  if let fallback = internalMic ?? wired ?? bluetooth {
+    switchInput(from: current, to: fallback)
+  }
+}
+
 let queue = DispatchQueue(label: "preferred-mic")
-let listener: AudioObjectPropertyListenerBlock = { _, _ in
+func recheck() {
   // Bluetooth devices can grab the default a moment after they appear, so
   // check again shortly after each change too.
   enforce()
@@ -87,8 +160,15 @@ let listener: AudioObjectPropertyListenerBlock = { _, _ in
 
 for selector in [kAudioHardwarePropertyDevices, kAudioHardwarePropertyDefaultInputDevice] {
   var addr = address(selector)
-  AudioObjectAddPropertyListenerBlock(system, &addr, queue, listener)
+  AudioObjectAddPropertyListenerBlock(system, &addr, queue) { _, _ in recheck() }
 }
+
+// Power events include opening and closing the lid.
+let powerPort = IONotificationPortCreate(kIOMainPortDefault)
+IONotificationPortSetDispatchQueue(powerPort, queue)
+var powerNotifier: io_object_t = 0
+IOServiceAddInterestNotification(powerPort, powerRoot, kIOGeneralInterest,
+                                 { _, _, _, _ in recheck() }, nil, &powerNotifier)
 
 log("Watching for input devices named \"\(preferredPrefix)*\"")
 queue.async { enforce() }

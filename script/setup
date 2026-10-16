@@ -508,6 +508,8 @@ quietly "Installing global tools with mise" "$HOME/.local/bin/mise" install
 
 # Keep the Shure MV7 as the default input whenever it is connected, even when
 # Bluetooth headphones like AirPods connect and macOS switches to their mic.
+# Without it, use another wired or built-in mic so AirPods keep playing music
+# in high quality.
 preferred_mic_bin="$HOME/.local/bin/preferred-mic"
 preferred_mic_source="$PWD/preferred-mic/main.swift"
 preferred_mic_label="com.jnunemaker.preferred-mic"

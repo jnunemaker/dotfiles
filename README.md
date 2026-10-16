@@ -80,9 +80,15 @@ Diffity is installed globally through npm.
 
 Setup compiles `preferred-mic` and loads it as a LaunchAgent. Whenever a Shure
 MV7 is connected, it stays the default microphone, even after AirPods or other
-Bluetooth headphones connect and macOS switches input to them. When the Shure
-is unplugged, macOS chooses the default input as usual. Audio output is left
-alone, so headphones keep playing sound.
+Bluetooth headphones connect and macOS switches input to them. Audio output is
+left alone, so headphones keep playing sound.
+
+When the Shure is unplugged, it still keeps input off Bluetooth headphones.
+Using AirPods as a mic (for dictation, say) switches them from stereo music to
+low-quality call audio, so it uses the MacBook's mic instead, or a wired mic
+like a monitor's or a headset on the headphone jack when the lid is closed. If
+there's no other mic, AirPods stay (or become) the input, since a closed lid
+mutes the MacBook's mic.
 
 Apps that pick a specific microphone in their own settings ignore the system
 default; set them to "System default" to follow it.
