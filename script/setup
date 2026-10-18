@@ -346,6 +346,9 @@ add_token_mcp jelly Jelly https://mcp.letsjelly.com/mcp \
 add_token_mcp fireside Fireside https://mcp.fireside.fm/mcp \
   fireside-api-token FIRESIDE_API_TOKEN "the fire_... key from Fireside"
 
+add_token_mcp crisp Crisp https://api.crisp.chat/mcp/ \
+  crisp-mcp-token CRISP_MCP_TOKEN "Settings → Workspace Settings → Advanced configuration → MCP Server Token in Crisp"
+
 # Add Ahrefs' hosted MCP server to Claude Code and Codex. Claude Code signs in
 # with OAuth from /mcp on first use. Codex refuses Ahrefs' OAuth because its
 # sign-in page is on a different host than its authorization server, so Codex
