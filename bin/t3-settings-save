@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-for name in settings client-settings; do
+for name in settings client-settings keybindings; do
   jq . "$HOME/.t3/userdata/$name.json" > "$HOME/.dotfiles/t3/$name.json"
 done
 

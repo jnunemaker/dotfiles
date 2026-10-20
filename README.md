@@ -70,7 +70,9 @@ still pick their own versions from `.tool-versions` or `.ruby-version`.
 
 T3 Code's settings live in `t3/settings.json` (server settings such as the
 default model and enabled providers) and `t3/client-settings.json` (interface
-preferences). T3 Code replaces these files when it saves, so setup copies them
+preferences), and shortcuts live in `t3/keybindings.json`. Cmd+T opens the
+in-app browser when the right panel is closed, and the right panel's new-tab
+menu when it is open. T3 Code replaces these files when it saves, so setup copies them
 into `~/.t3/userdata/` rather than linking them, backing up any that differ.
 After changing settings in the app, run `t3-settings-save` to copy them back
 here, then commit. Sign-ins, secrets, and threads stay on each Mac.

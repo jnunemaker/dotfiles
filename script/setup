@@ -456,9 +456,9 @@ symlink_config "$PWD/codex/AGENTS.md" "$HOME/.codex/AGENTS.md" "codex-AGENTS.md"
 symlink_config "$PWD/ghostty/config" "$HOME/.config/ghostty/config" "ghostty-config"
 symlink_config "$PWD/mise/config.toml" "$HOME/.config/mise/config.toml" "mise-config.toml"
 
-# T3 Code replaces its settings files when saving, which breaks symlinks, so
-# copy them in instead. Run t3-settings-save to bring app changes back here.
-for t3_settings in settings client-settings; do
+# T3 Code replaces its settings and keybindings files when saving, which breaks
+# symlinks, so copy them in instead. Run t3-settings-save to bring app changes back here.
+for t3_settings in settings client-settings keybindings; do
   t3_source="$PWD/t3/$t3_settings.json"
   t3_target="$HOME/.t3/userdata/$t3_settings.json"
 
