@@ -2,7 +2,6 @@
   "storageCleanup": {
     "worktreeOnMerge": true
   },
-  "continueThreadsAfterServerUpdate": true,
   "defaultAutoPull": true,
   "defaultModelSelection": {
     "instanceId": "claudeAgent",
@@ -10,16 +9,5 @@
   },
   "defaultRuntimeMode": "auto",
   "projectSettingsFolded": true,
-  "addProjectBaseDirectory": "~/github",
-  "providers": {
-    "cursor": {
-      "enabled": false
-    },
-    "grok": {
-      "enabled": false
-    },
-    "opencode": {
-      "enabled": false
-    }
-  }
+  "addProjectBaseDirectory": "~/github"
 }
