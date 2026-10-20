@@ -9,5 +9,7 @@
   },
   "defaultRuntimeMode": "auto",
   "projectSettingsFolded": true,
-  "addProjectBaseDirectory": "~/github"
+  "addProjectBaseDirectory": "~/github",
+  "sidebarAutoSettleAfterDays": null,
+  "sidebarAutoSettleOnMerge": false
 }
