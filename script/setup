@@ -304,7 +304,7 @@ find_token() {
   fi
 
   if [ -z "$token" ]; then
-    echo "Skipping $title MCP: no token. Rerun with $env_var=<token> script/setup to add it."
+    echo "Skipping $title: no token. Rerun with $env_var=<token> script/setup to add it."
     return 1
   fi
 
@@ -365,6 +365,38 @@ if ! codex_has_mcp ahrefs && find_token Ahrefs ahrefs-mcp-key AHREFS_MCP_KEY \
     "an MCP key from Ahrefs, not an API v3 key"; then
   add_codex_token_mcp ahrefs "$ahrefs_mcp_url" "$token"
 fi
+
+# Add linode-cli profiles for each Linode account to ~/.config/linode-cli, with
+# the account's personal access token kept in the Keychain like the MCP tokens.
+# Profiles already in the config are left alone. The first profile added becomes
+# the default when setup creates the file.
+#
+#   add_linode_profile <user> <region> <type>
+linode_config="$HOME/.config/linode-cli"
+
+add_linode_profile() {
+  local user="$1" region="$2" type="$3" env_var token
+
+  if grep -q "^\[$user\]" "$linode_config" 2>/dev/null; then
+    return
+  fi
+
+  env_var="LINODE_TOKEN_$(echo "$user" | tr '[:lower:]' '[:upper:]')"
+  find_token "Linode $user" "linode-token-$user" "$env_var" \
+    "a personal access token from cloud.linode.com/profile/tokens" || return 0
+
+  mkdir -p "$(dirname "$linode_config")"
+  if ! grep -q '^\[DEFAULT\]' "$linode_config" 2>/dev/null; then
+    printf '[DEFAULT]\ndefault-user = %s\n' "$user" >> "$linode_config"
+  fi
+
+  printf '\n[%s]\ntoken = %s\nregion = %s\ntype = %s\nimage = linode/ubuntu24.04\nauthorized_users = %s\nsuppress-version-warning = true\n' \
+    "$user" "$token" "$region" "$type" "$user" >> "$linode_config"
+  chmod 600 "$linode_config"
+}
+
+add_linode_profile john_fireside us-west g6-standard-2
+add_linode_profile jnunemaker us-iad g6-standard-4
 
 unset token
 

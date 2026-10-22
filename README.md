@@ -57,6 +57,14 @@ OAuth sign-in, so Codex uses an Ahrefs MCP key instead (an MCP key, not an API
 v3 key). Setup handles it like the Jelly and Fireside tokens, using the Keychain
 item `ahrefs-mcp-key` or `AHREFS_MCP_KEY`.
 
+Setup adds `john_fireside` (the default) and `jnunemaker` profiles to
+`~/.config/linode-cli`, each with a personal access token from
+cloud.linode.com/profile/tokens. It reads tokens the same way, from the Keychain
+items `linode-token-john_fireside` and `linode-token-jnunemaker`, then
+`LINODE_TOKEN_JOHN_FIRESIDE` or `LINODE_TOKEN_JNUNEMAKER`, then asks. Profiles
+already in the config are left alone, so to change a token, edit the config and
+update the Keychain item.
+
 Railway is installed with its recommended installer (`railway.com/install.sh
 --agents --local`), which also adds its agent skills and the local `railway mcp`
 server. Setup removes a Homebrew `railway` if one is present.
