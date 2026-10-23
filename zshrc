@@ -169,7 +169,6 @@ function on_ruby_change() {
   find app lib config -type f | cat - <(find test spec -name '*.rb') | entr -c -r $@
 }
 
-source ~/.dotfiles/railway_completion
 source ~/.dotfiles/functions
 
 # Added by LM Studio CLI (lms)
@@ -204,7 +203,3 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 # workspace CLI
 export PATH="/Users/johnnunemaker/.workspace/bin:$PATH"
-
-# >>> railway initialize >>>
-source "$HOME/.railway/env"
-# <<< railway initialize <<<

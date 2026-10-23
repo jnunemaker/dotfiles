@@ -410,15 +410,25 @@ if [ ! -x "$HOME/.local/bin/mise" ]; then
   quietly_sh "Installing mise" "curl -fsSL https://mise.run | sh"
 fi
 
-# Install Railway with its recommended installer, which also installs its agent
-# skills and the local Railway MCP server (`railway mcp`) for Claude Code.
+# Railway is no longer used. Remove the CLI, its agent skills, and its MCP
+# server if an earlier setup installed them.
 if brew list --formula railway &>/dev/null; then
   quietly "Removing Homebrew railway" brew uninstall --formula railway
 fi
 
-if [ ! -x "$HOME/.railway/bin/railway" ]; then
-  quietly_sh "Installing Railway" \
-    "curl -fsSL https://railway.com/install.sh | sh -s -- --agents -y --local"
+if [ -e "$HOME/.railway" ]; then
+  quietly "Removing Railway" rm -rf "$HOME/.railway" \
+    "$HOME/.agents/skills/use-railway" \
+    "$HOME/.claude/skills/use-railway" \
+    "$HOME/.codex/skills/use-railway"
+fi
+
+if command -v claude >/dev/null 2>&1 && claude mcp get railway &>/dev/null; then
+  quietly "Removing Railway MCP from Claude Code" claude mcp remove railway -s user
+fi
+
+if command -v codex >/dev/null 2>&1 && codex mcp get railway &>/dev/null; then
+  quietly "Removing Railway MCP from Codex" codex mcp remove railway
 fi
 
 # Install gstack for Claude Code and Codex
