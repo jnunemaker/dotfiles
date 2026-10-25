@@ -518,6 +518,18 @@ for t3_settings in settings client-settings keybindings; do
   cp "$t3_source" "$t3_target"
 done
 
+# Install Cloudflare's security-audit skill for Claude Code and Codex. The repo
+# keeps the skill in a subfolder, so clone it once and link that folder in.
+security_audit_dir="$HOME/.local/share/security-audit-skill"
+if [ ! -d "$security_audit_dir/.git" ]; then
+  mkdir -p "$(dirname "$security_audit_dir")"
+  quietly "Cloning the security-audit skill" \
+    git clone --single-branch --depth 1 https://github.com/cloudflare/security-audit-skill.git "$security_audit_dir"
+fi
+
+symlink_config "$security_audit_dir/skills/security-audit" "$HOME/.claude/skills/security-audit" "claude-skills-security-audit"
+symlink_config "$security_audit_dir/skills/security-audit" "$HOME/.codex/skills/security-audit" "codex-skills-security-audit"
+
 # Global tool versions live in the mise config above. A leftover asdf-style
 # ~/.tool-versions would override them, so move it to the backup.
 if [ -f "$HOME/.tool-versions" ] && [ ! -L "$HOME/.tool-versions" ]; then

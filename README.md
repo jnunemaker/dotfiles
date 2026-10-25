@@ -27,6 +27,12 @@ their normal first-run sign-in and macOS permission prompts.
 Gstack is installed from its official Git repository after its Homebrew
 dependencies are available.
 
+Setup also clones Cloudflare's
+[security-audit skill](https://github.com/cloudflare/security-audit-skill) to
+`~/.local/share/security-audit-skill` and links it into both Claude Code and
+Codex. Ask either agent to "security audit this codebase" to run it; reports go
+to `~/security-audit-skill/<repo>/run-N`. Run `git pull` in the clone to update.
+
 Setup installs the Cloudflare and PlanetScale Claude Code plugins, which bring
 their hosted MCP servers, and adds the same Cloudflare and PlanetScale MCP
 servers to Codex. It also
