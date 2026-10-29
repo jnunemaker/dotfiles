@@ -12,5 +12,7 @@
   "addProjectBaseDirectory": "~/github",
   "sidebarAutoSettleAfterDays": null,
   "sidebarAutoSettleOnMerge": false,
-  "defaultThreadEnvMode": "worktree"
+  "defaultThreadEnvMode": "worktree",
+  "branchNamePrefix": "nunes",
+  "idleCompaction": "onReturn"
 }
