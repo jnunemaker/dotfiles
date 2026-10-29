@@ -11,5 +11,6 @@
   "projectSettingsFolded": true,
   "addProjectBaseDirectory": "~/github",
   "sidebarAutoSettleAfterDays": null,
-  "sidebarAutoSettleOnMerge": false
+  "sidebarAutoSettleOnMerge": false,
+  "defaultThreadEnvMode": "worktree"
 }
