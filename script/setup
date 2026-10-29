@@ -308,7 +308,11 @@ find_token() {
     return 1
   fi
 
-  security add-generic-password -U -s "$item" -a "$USER" -w "$token"
+  # Over SSH the login Keychain is locked and can't prompt, so saving fails. Keep
+  # going with the token rather than dropping the server.
+  if ! security add-generic-password -U -s "$item" -a "$USER" -w "$token" 2>/dev/null; then
+    echo "Couldn't save the $title token to the Keychain (locked over SSH?). It was still added; to keep a copy, run security unlock-keychain before setup next time."
+  fi
 }
 
 # codex mcp add can't set a static header, so write the server table directly.
