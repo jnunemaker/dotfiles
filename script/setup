@@ -449,6 +449,14 @@ elif [ ! -d "$gstack_dir/.git" ]; then
   exit 1
 fi
 
+# gstack's setup only covers Claude Code unless told otherwise. Check for what
+# nunebot-review uses, so an install that failed partway gets retried.
+if [ ! -x "$HOME/.codex/skills/gstack/bin/gstack-claude-code" ] ||
+  [ ! -f "$HOME/.codex/skills/gstack-qa/SKILL.md" ] ||
+  [ ! -f "$HOME/.codex/skills/gstack-claude-code/SKILL.md" ]; then
+  quietly_sh "Setting up gstack for Codex" "cd '$gstack_dir' && ./setup --host codex"
+fi
+
 # Install oh my zsh. Unattended, so it neither changes the login shell nor
 # starts a new zsh; the dotfiles provide ~/.zshrc below.
 if [ ! -d ~/.oh-my-zsh ]; then
@@ -494,7 +502,7 @@ symlink_config() {
 # Symlink each managed dotfile into ~/, moving anything already there aside.
 for file in *; do
   # Skip scripts and text files
-  echo $file | egrep -q '(^script$|^codex$|^ghostty$|^preferred-mic$|^mise$|^t3$|\.txt$|\.md|\.json$)' && continue
+  echo $file | egrep -q '(^script$|^codex$|^ghostty$|^preferred-mic$|^mise$|^skills$|^t3$|\.txt$|\.md|\.json$)' && continue
 
   symlink_config "$PWD/$file" "$HOME/.$file" "$file"
 done
@@ -502,6 +510,16 @@ done
 symlink_config "$PWD/codex/AGENTS.md" "$HOME/.codex/AGENTS.md" "codex-AGENTS.md"
 symlink_config "$PWD/ghostty/config" "$HOME/.config/ghostty/config" "ghostty-config"
 symlink_config "$PWD/mise/config.toml" "$HOME/.config/mise/config.toml" "mise-config.toml"
+
+# Link my own skills into Claude Code and Codex.
+for skill in nunebot-review nunebot-pr; do
+  symlink_config "$PWD/skills/$skill" "$HOME/.claude/skills/$skill" "claude-skills-$skill"
+  symlink_config "$PWD/skills/$skill" "$HOME/.agents/skills/$skill" "agents-skills-$skill"
+done
+
+# Claude Code has /simplify built in and a personal skill would replace it, so
+# only Codex gets this one.
+symlink_config "$PWD/skills/simplify" "$HOME/.agents/skills/simplify" "agents-skills-simplify"
 
 # T3 Code replaces its settings and keybindings files when saving, which breaks
 # symlinks, so copy them in instead. Run t3-settings-save to bring app changes back here.
