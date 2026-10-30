@@ -449,8 +449,11 @@ elif [ ! -d "$gstack_dir/.git" ]; then
   exit 1
 fi
 
-# gstack's setup only covers Claude Code unless told otherwise.
-if [ ! -d "$HOME/.codex/skills/gstack" ]; then
+# gstack's setup only covers Claude Code unless told otherwise. Check for what
+# nunebot-review uses, so an install that failed partway gets retried.
+if [ ! -x "$HOME/.codex/skills/gstack/bin/gstack-claude-code" ] ||
+  [ ! -f "$HOME/.codex/skills/gstack-qa/SKILL.md" ] ||
+  [ ! -f "$HOME/.codex/skills/gstack-claude-code/SKILL.md" ]; then
   quietly_sh "Setting up gstack for Codex" "cd '$gstack_dir' && ./setup --host codex"
 fi
 
