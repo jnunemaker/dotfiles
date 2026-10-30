@@ -18,7 +18,7 @@ Never merge, deploy, enable feature flags, or change anything in production. Nev
 
 ## 2. Read the ledger
 
-Read `$(git rev-parse --git-dir)/nunebot-review.md` if it exists.
+Read `$(git rev-parse --git-dir)/nunebot-review.md` if it exists. Worktrees get reused, so first check that it belongs to this change: its `Branch` must be the current branch, its `Base` must be this PR's base, and `git merge-base --is-ancestor <Head> HEAD` must succeed. If any check fails, including after a rebase, treat it as no ledger and say which check failed. Never carry its review or proof into the PR.
 
 - **`GAVE_UP` or `BLOCKED`:** don't open a PR. Push the branch and report the open findings, unless I told you to open it anyway. If I did, put the open findings in the Review section.
 - **`Head` isn't the current commit:** list the newer commits in the Review section as not reviewed.

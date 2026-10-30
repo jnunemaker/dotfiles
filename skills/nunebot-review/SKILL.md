@@ -45,7 +45,7 @@ Do at most 3 rounds of:
 1. Commit the fixes as one commit and note its SHA.
 2. Have the other model review only that commit, never the whole change again.
    - **In Claude Code:** `codex review --commit <sha>`.
-   - **In Codex:** `/claude-code review`, telling it to review only the output of `git show <sha>`.
+   - **In Codex:** not `/claude-code review`, which always sends the whole branch. Write a temporary prompt file outside the repo asking for a review of this diff only, with findings labelled `[P1]`, `[P2]`, `[P3]` or `NO_FINDINGS`, followed by the output of `git show <sha>`. Then run `~/.codex/skills/gstack/bin/gstack-claude-code --user-invoked --cwd "$(git rev-parse --show-toplevel)" --access none --timeout-ms 600000 < <prompt-file>` and read `result` from the JSON it prints. If it fails, the review didn't happen, so the status is `BLOCKED`.
 3. Decide on each finding as in step 4. If nothing is legitimate, go to step 6.
 
 If the third review still has legitimate findings, stop. Commit nothing else, record the open findings, and go to step 8 with status `GAVE_UP`. Chasing zero findings is how small changes turn into 3,000 line PRs.
@@ -78,6 +78,7 @@ Write the ledger in this shape, leaving out anything that doesn't apply:
 
 ```markdown
 Status: DONE | GAVE_UP | BLOCKED
+Branch: <branch>
 Base: <branch>
 Head: <sha>
 
