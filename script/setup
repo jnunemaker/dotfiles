@@ -449,6 +449,11 @@ elif [ ! -d "$gstack_dir/.git" ]; then
   exit 1
 fi
 
+# gstack's setup only covers Claude Code unless told otherwise.
+if [ ! -d "$HOME/.codex/skills/gstack" ]; then
+  quietly_sh "Setting up gstack for Codex" "cd '$gstack_dir' && ./setup --host codex"
+fi
+
 # Install oh my zsh. Unattended, so it neither changes the login shell nor
 # starts a new zsh; the dotfiles provide ~/.zshrc below.
 if [ ! -d ~/.oh-my-zsh ]; then

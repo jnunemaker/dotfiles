@@ -30,7 +30,7 @@ Run `gh repo view --json visibility -q .visibility`. In a public repo, never des
 
 ## 4. Push
 
-Push with `git push -u origin HEAD`. If the remote moved, fetch and rebase your branch, then push again. Use `--force-with-lease` only on a branch you created.
+Push with `git push -u origin HEAD`. If the remote moved, fetch and rebase your branch, push again, and repeat the ledger checks from step 2. Use `--force-with-lease` only on a branch you created.
 
 ## 5. Write the body
 
