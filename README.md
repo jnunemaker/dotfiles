@@ -99,7 +99,7 @@ in-app browser when the right panel is closed, and the right panel's new-tab
 menu when it is open. T3 Code replaces these files when it saves, so setup copies them
 into `~/.t3/userdata/` rather than linking them, backing up any that differ.
 After changing settings in the app, run `t3-settings-save` to copy them back
-here, then commit. Sign-ins, secrets, and threads stay on each Mac.
+here, commit, and push. Sign-ins, secrets, and threads stay on each Mac.
 
 Git and the external tools referenced by `.gitconfig` are managed by the
 `Brewfile`, including Delta (the pager), hunk (for reviewing agent changes), Git LFS, GitHub CLI, Heroku CLI, and GnuPG.
