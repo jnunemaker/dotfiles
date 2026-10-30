@@ -33,6 +33,16 @@ Setup also clones Cloudflare's
 Codex. Ask either agent to "security audit this codebase" to run it; reports go
 to `~/security-audit-skill/<repo>/run-N`. Run `git pull` in the clone to update.
 
+My own skills live in `skills/`, and setup links them into both Claude Code
+(`~/.claude/skills`) and Codex (`~/.agents/skills`):
+
+- `nunebot-review` runs simplify, QA, a review by the other model, up to three
+  rounds of reviewing only the fixes, then performance, compatibility, and proof.
+  Pass `unattended` when nobody is watching.
+- `nunebot-pr` commits what's left, pushes, and creates or updates the pull
+  request in my format, using the ledger `nunebot-review` left in the git directory.
+- `simplify` is linked into Codex only, because Claude Code has it built in.
+
 Setup installs the Cloudflare and PlanetScale Claude Code plugins, which bring
 their hosted MCP servers, and adds the same Cloudflare and PlanetScale MCP
 servers to Codex. It also
