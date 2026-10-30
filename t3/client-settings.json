@@ -55,7 +55,7 @@
   "proactivePanelsEnabled": false,
   "showSkillsInSlashMenu": true,
   "legacySidebarEnabled": false,
-  "sidebarWorkingShelfEnabled": false,
+  "sidebarWorkingShelfEnabled": true,
   "sidebarProjectGroupingMode": "repository",
   "sidebarProjectGroupingOverrides": {},
   "sidebarProjectSortOrder": "updated_at",
