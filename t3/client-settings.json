@@ -1,6 +1,6 @@
 {
   "notificationMode": "off",
-  "inAppNotificationsEnabled": false,
+  "inAppNotificationsEnabled": true,
   "diffColorScheme": "red-green",
   "chatWidth": "comfortable",
   "loadBalancingEnabled": false,
@@ -16,6 +16,8 @@
   "browserRecordingShowKeyPresses": false,
   "browserRecordingShowMousePresses": false,
   "browserLinkTarget": "app",
+  "browserSearchEngine": "duckduckgo",
+  "browserCustomSearchUrl": "",
   "browserAutoShowFloatingPreview": true,
   "browserProfiles": [],
   "browserDefaultProfileId": "default",
@@ -39,9 +41,11 @@
   "fontFamilyTerminal": "",
   "fontSmoothing": true,
   "onboardingCompletedAt": "2026-10-09T20:36:49.196Z",
+  "persistComposerContextStrip": false,
   "favorites": [],
   "providerModelPreferences": {},
   "pullRequestMergeMethodOverrides": {},
+  "pullRequestLinksOpenInApp": true,
   "planModeEnabled": false,
   "contextWindowMeterEnabled": false,
   "composerCollapseOnScroll": true,
@@ -67,5 +71,7 @@
   "snapShotSound": "soft-pop",
   "snapShotFlash": true,
   "snapShotAnimations": true,
-  "wordWrap": true
+  "wordWrap": true,
+  "mathRenderingEnabled": false,
+  "redesignEnabled": true
 }
