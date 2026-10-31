@@ -1,0 +1,7 @@
+[extend]
+useDefault = true
+
+# Shortcuts like "mod+shift+enter" look like API keys to gitleaks.
+[[allowlists]]
+description = "T3 Code keyboard shortcuts"
+regexes = ['''^(mod|ctrl|alt|shift|cmd|meta)(\+[a-z]+)+$''']

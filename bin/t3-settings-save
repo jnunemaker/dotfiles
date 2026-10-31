@@ -6,9 +6,22 @@ set -euo pipefail
 
 dotfiles="$HOME/.dotfiles"
 
+if ! command -v gitleaks > /dev/null; then
+  echo "gitleaks is missing, so nothing was saved. Run: brew install gitleaks" >&2
+  exit 1
+fi
+
 for name in settings client-settings keybindings; do
   jq . "$HOME/.t3/userdata/$name.json" > "$dotfiles/t3/$name.json"
 done
+
+# The repo is public, so never publish settings that look like they hold a secret.
+if ! gitleaks dir "$dotfiles/t3" --config "$dotfiles/t3/gitleaks.toml" --no-banner --redact --verbose --log-level warn; then
+  git -C "$dotfiles" restore --source=HEAD --staged --worktree t3
+  echo "gitleaks flagged these settings or could not scan them, so nothing was saved." >&2
+  echo "Remove the secret from T3 Code, then save again." >&2
+  exit 1
+fi
 
 git -C "$dotfiles" add t3
 
