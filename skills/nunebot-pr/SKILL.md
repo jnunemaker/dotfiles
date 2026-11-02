@@ -60,7 +60,7 @@ What /simplify trimmed, what /qa found, and each cross-model review round: findi
 ## Risk and rollback
 ```
 
-If an app doesn't deploy on merge, list the deploy step under `John: after merge/deploy`. Gem releases, Go tags and `workspace update` can happen later, so they aren't John steps: leave them out of the John sections.
+The John sections are only for changes you can't make yourself and production checks. If you can do it, do it instead of listing it. If an app doesn't deploy on merge, list the deploy step under `John: after merge/deploy`. Gem releases, Go tags and `workspace update` can happen later, so they aren't John steps: leave them out of the John sections.
 
 ## 6. Create or update the PR
 
