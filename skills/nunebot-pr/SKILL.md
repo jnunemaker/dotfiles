@@ -41,7 +41,7 @@ Write it to a temporary file outside the repo, using these sections in this orde
 - [ ] Steps only I can do first, such as a production check.
 
 ## John: after merge/deploy
-- [ ] Deploy steps, purges, releases.
+- [ ] Deploy steps, purges.
 
 ## Why
 The problem, with a link to its evidence.
@@ -60,7 +60,7 @@ What /simplify trimmed, what /qa found, and each cross-model review round: findi
 ## Risk and rollback
 ```
 
-If the repo doesn't deploy on merge, list the deploy step under `John: after merge/deploy`.
+If an app doesn't deploy on merge, list the deploy step under `John: after merge/deploy`. Gem releases, Go tags and `workspace update` can happen later, so they aren't John steps: leave them out of the John sections.
 
 ## 6. Create or update the PR
 
@@ -69,7 +69,7 @@ Check for an existing PR with `gh pr view --json url,state`. Treat a closed or m
 - **New:** `gh pr create --base <base> --title "<title>" --body-file <file>`, ready for review, not a draft. The title is short and says what changed. Link an issue with `Fixes #123` when there is one.
 - **Existing:** `gh pr edit --title "<title>" --body-file <file>`.
 - **Screenshots:** attach each image from the ledger with `--attach './after.png#alt text'` on `gh pr create` or `gh pr edit`. This needs gh 2.99 or newer. `--body-file` drops images already attached, so after editing a body, attach them again.
-- **`needs-john`:** if either John section is present, add this label, creating it if it's missing.
+- **`needs-john`:** if either John section is present, add this label, creating it if it's missing. A pending gem release or Go tag never earns this label.
 - **Labels I or the caller asked for:** add them, creating them if they're missing.
 
 ## 7. Report
