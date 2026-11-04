@@ -348,7 +348,7 @@ add_token_mcp() {
 add_token_mcp jelly Jelly https://mcp.letsjelly.com/mcp \
   jelly-api-token JELLY_API_TOKEN "Settings → API Tokens in Jelly"
 
-add_token_mcp fireside Fireside https://mcp.fireside.fm/mcp \
+add_token_mcp fireside Fireside https://fireside.fm/mcp \
   fireside-api-token FIRESIDE_API_TOKEN "the fire_... key from Fireside"
 
 add_token_mcp crisp Crisp https://api.crisp.chat/mcp/ \
