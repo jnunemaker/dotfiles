@@ -83,6 +83,10 @@ items `linode-token-john_fireside` and `linode-token-jnunemaker`, then
 already in the config are left alone, so to change a token, edit the config and
 update the Keychain item.
 
+Railway is no longer used. Setup removes the Railway CLI (Homebrew or
+`~/.railway`), its `use-railway` agent skills, and the `railway` MCP server from
+Claude Code and Codex if an earlier setup installed them.
+
 mise manages language versions and is installed with its official installer
 (`mise.run`) into `~/.local/bin`; setup replaces a Homebrew `mise` if one is
 present. Global versions live in `mise/config.toml`, which setup links to

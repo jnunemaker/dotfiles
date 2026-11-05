@@ -240,7 +240,8 @@ if ! claude_has_marketplace claude-plugins-official; then
     claude plugin marketplace add anthropics/claude-plugins-official
 fi
 
-for plugin in cloudflare planetscale; do
+# Matt Pocock's skills come from the same marketplace; Codex gets them below.
+for plugin in cloudflare planetscale mattpocock-skills; do
   if ! claude_has_plugin "$plugin@claude-plugins-official"; then
     quietly "Installing Claude Code plugin $plugin" \
       claude plugin install --scope user "$plugin@claude-plugins-official"
@@ -257,6 +258,18 @@ fi
 if ! claude_has_plugin pstack@cursor-plugins; then
   quietly "Installing Claude Code plugin pstack" \
     claude plugin install --scope user pstack@cursor-plugins
+fi
+
+# Codex installs Matt Pocock's skills as a plugin from his own marketplace.
+# Codex records both in its config, which is faster to read than listing them.
+if ! grep -q '^\[marketplaces\.mattpocock\]' "$HOME/.codex/config.toml" 2>/dev/null; then
+  quietly "Adding Matt Pocock's Codex plugin marketplace" \
+    codex plugin marketplace add mattpocock/skills
+fi
+
+if ! grep -q '^\[plugins\."mattpocock-skills@mattpocock"\]' "$HOME/.codex/config.toml" 2>/dev/null; then
+  quietly "Installing Codex plugin mattpocock-skills" \
+    codex plugin add mattpocock-skills@mattpocock
 fi
 
 # Codex can't use Claude Code plugins, so add Cloudflare's and PlanetScale's MCP
