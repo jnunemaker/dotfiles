@@ -540,6 +540,17 @@ for file in *; do
 done
 
 symlink_config "$PWD/codex/AGENTS.md" "$HOME/.codex/AGENTS.md" "codex-AGENTS.md"
+
+# Claude Code doesn't read AGENTS.md, so its global CLAUDE.md imports the Codex
+# one. The rest of that file is left alone, since gstack writes to it.
+claude_md="$HOME/.claude/CLAUDE.md"
+if ! grep -qxF '@~/.codex/AGENTS.md' "$claude_md" 2>/dev/null; then
+  mkdir -p "$(dirname "$claude_md")"
+  if [ -s "$claude_md" ]; then
+    echo >> "$claude_md"
+  fi
+  echo '@~/.codex/AGENTS.md' >> "$claude_md"
+fi
 symlink_config "$PWD/ghostty/config" "$HOME/.config/ghostty/config" "ghostty-config"
 symlink_config "$PWD/mise/config.toml" "$HOME/.config/mise/config.toml" "mise-config.toml"
 
