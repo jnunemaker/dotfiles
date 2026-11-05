@@ -468,27 +468,6 @@ if [ ! -x "$HOME/.local/bin/mise" ]; then
   quietly_sh "Installing mise" "curl -fsSL https://mise.run | sh"
 fi
 
-# Railway is no longer used. Remove the CLI, its agent skills, and its MCP
-# server if an earlier setup installed them.
-if brew_has_formula railway; then
-  quietly "Removing Homebrew railway" brew uninstall --formula railway
-fi
-
-if [ -e "$HOME/.railway" ]; then
-  quietly "Removing Railway" rm -rf "$HOME/.railway" \
-    "$HOME/.agents/skills/use-railway" \
-    "$HOME/.claude/skills/use-railway" \
-    "$HOME/.codex/skills/use-railway"
-fi
-
-if command -v claude >/dev/null 2>&1 && claude_has_mcp railway; then
-  quietly "Removing Railway MCP from Claude Code" claude mcp remove railway -s user
-fi
-
-if command -v codex >/dev/null 2>&1 && codex mcp get railway &>/dev/null; then
-  quietly "Removing Railway MCP from Codex" codex mcp remove railway
-fi
-
 # Install gstack for Claude Code and Codex
 gstack_dir="$HOME/.claude/skills/gstack"
 if [ ! -e "$gstack_dir" ]; then
