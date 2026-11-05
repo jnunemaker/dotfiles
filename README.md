@@ -46,8 +46,9 @@ My own skills live in `skills/`, and setup links them into both Claude Code
 Setup installs the Cloudflare and PlanetScale Claude Code plugins, which bring
 their hosted MCP servers, and adds the same Cloudflare and PlanetScale MCP
 servers to Codex. It also installs the pstack Claude Code plugin from Cursor's
-marketplace, which has no Codex version, and Matt Pocock's skills as a plugin
-in both Claude Code and Codex. Setup also
+marketplace, which has no Codex version, and links its per-role model choices
+from `claude/rules/pstack-models.md` into `~/.claude/rules/`. It also installs
+Matt Pocock's skills as a plugin in both Claude Code and Codex. Setup also
 adds the hosted Honeybadger and Help Scout (read-only) MCP servers to both
 Claude Code and Codex. Each signs
 in with OAuth the first time it is used. A Honeybadger sign-in grants a single

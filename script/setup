@@ -534,7 +534,7 @@ symlink_config() {
 # Symlink each managed dotfile into ~/, moving anything already there aside.
 for file in *; do
   # Skip scripts and text files
-  echo $file | egrep -q '(^script$|^codex$|^ghostty$|^preferred-mic$|^mise$|^skills$|^t3$|\.txt$|\.md|\.json$)' && continue
+  echo $file | egrep -q '(^script$|^claude$|^codex$|^ghostty$|^preferred-mic$|^mise$|^skills$|^t3$|\.txt$|\.md|\.json$)' && continue
 
   symlink_config "$PWD/$file" "$HOME/.$file" "$file"
 done
@@ -553,6 +553,10 @@ if ! grep -qxF '@~/.codex/AGENTS.md' "$claude_md" 2>/dev/null; then
 fi
 symlink_config "$PWD/ghostty/config" "$HOME/.config/ghostty/config" "ghostty-config"
 symlink_config "$PWD/mise/config.toml" "$HOME/.config/mise/config.toml" "mise-config.toml"
+
+# pstack's per-role model choices. Claude Code loads every rule in
+# ~/.claude/rules/ into each session. Re-run /pstack:setup-pstack to change it.
+symlink_config "$PWD/claude/rules/pstack-models.md" "$HOME/.claude/rules/pstack-models.md" "claude-rules-pstack-models.md"
 
 # Link my own skills into Claude Code and Codex.
 for skill in nunebot-review nunebot-pr; do
