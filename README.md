@@ -45,7 +45,8 @@ My own skills live in `skills/`, and setup links them into both Claude Code
 
 Setup installs the Cloudflare and PlanetScale Claude Code plugins, which bring
 their hosted MCP servers, and adds the same Cloudflare and PlanetScale MCP
-servers to Codex. It also
+servers to Codex. It also installs the pstack Claude Code plugin from Cursor's
+marketplace, which has no Codex version. Setup also
 adds the hosted Honeybadger and Help Scout (read-only) MCP servers to both
 Claude Code and Codex. Each signs
 in with OAuth the first time it is used. A Honeybadger sign-in grants a single

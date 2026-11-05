@@ -219,6 +219,18 @@ for plugin in cloudflare planetscale; do
   fi
 done
 
+# pstack comes from Cursor's plugin marketplace. It's a Claude Code plugin
+# only, so there's nothing to add to Codex.
+if ! claude plugin marketplace list 2>/dev/null | grep -q 'cursor-plugins'; then
+  quietly "Adding Cursor's Claude Code plugin marketplace" \
+    claude plugin marketplace add cursor/plugins
+fi
+
+if ! claude plugin list 2>/dev/null | grep -q "pstack@cursor-plugins"; then
+  quietly "Installing Claude Code plugin pstack" \
+    claude plugin install --scope user pstack@cursor-plugins
+fi
+
 # Codex can't use Claude Code plugins, so add Cloudflare's and PlanetScale's MCP
 # servers directly. Adding each opens its OAuth sign-in in the browser, so it
 # runs visibly.
