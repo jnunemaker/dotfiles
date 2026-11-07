@@ -7,7 +7,7 @@ description: Run my full review loop on the current branch (simplify, QA, cross-
 
 Take the change on the current branch from written to proven, and leave a ledger for `nunebot-pr`.
 
-This is a checklist. A nested skill returning does not end your turn: when one finishes, even with its own report or status block, go straight to the next step. You are done only after step 8.
+This is a checklist. A nested skill returning does not end your turn: when one finishes, even with its own report or status block, go straight to the next step. You are done only after step 9.
 
 If the arguments include `unattended`, nobody is watching. When a skill stops to ask a question, take its recommended option and record the choice in the ledger. Otherwise ask me.
 
@@ -50,7 +50,7 @@ Do at most 3 rounds of:
    - **In Codex:** not `$claude-code review`, which always sends the whole branch. Write a temporary prompt file outside the repo asking for a review of this diff only, with findings labelled `[P1]`, `[P2]`, `[P3]` or `NO_FINDINGS`, followed by the output of `git show <sha>`. Then run `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ~/.codex/skills/gstack/bin/gstack-claude-code --user-invoked --cwd "$(git rev-parse --show-toplevel)" --access none --timeout-ms 600000 < <prompt-file>` and read `result` from the JSON it prints. If it fails, the review didn't happen, so the status is `BLOCKED`.
 3. Decide on each finding as in step 4. If nothing is legitimate, go to step 6.
 
-If the third review still has legitimate findings, stop. Commit nothing else, record the open findings, and go to step 8 with status `GAVE_UP`. Chasing zero findings is how small changes turn into 3,000 line PRs.
+If the third review still has legitimate findings, stop. Commit nothing else, record the open findings, and go to step 9 with status `GAVE_UP`. Chasing zero findings is how small changes turn into 3,000 line PRs.
 
 ## 6. Performance and compatibility
 
@@ -59,7 +59,16 @@ Answer both from the final code, for someone who hasn't read it:
 - **Performance:** what does this cost at runtime (queries, requests, hot paths, memory, job load)? Give before and after numbers for any claim that something got faster or cheaper. "No runtime impact" is a fine answer when it's true.
 - **Compatibility:** is it mostly additive, checking more without breaking anything existing and legitimate? Name who or what could break, including stored data and API callers.
 
-## 7. Prove it
+## 7. Security
+
+Review the branch's diff for security problems: auth and permission checks, injection, secrets, unsafe input handling, and data exposure.
+
+- **In Claude Code:** the `security-review` skill.
+- **In Codex:** the `security-audit` skill, asked for a focused review of `git diff origin/<base>...HEAD` only, not a full audit.
+
+Decide on each finding as in step 4. A fix gets its own commit and a review as in step 5, using any rounds left. If none are left, the status is `GAVE_UP`. "No security findings" is a fine answer when it's true.
+
+## 8. Prove it
 
 On the final branch, gather every one of these that applies. Keep the actual output, not a description of it.
 
@@ -74,7 +83,7 @@ A fix made while proving gets its own commit and a review as in step 5, using an
 
 If you can't produce the proof, fix the change until you can. If that's not possible, the status is `BLOCKED`, with what you tried and everything you did prove.
 
-## 8. Finish the ledger and report
+## 9. Finish the ledger and report
 
 Write the ledger in this shape, leaving out anything that doesn't apply:
 
@@ -94,6 +103,9 @@ What it tested and found.
 Each round: what was reviewed, findings fixed, findings rejected and why.
 
 ## Performance & compatibility
+
+## Security
+What the security review checked and found.
 
 ## Proof
 The actual outputs and tables.

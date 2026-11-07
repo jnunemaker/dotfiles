@@ -55,7 +55,7 @@ Failing then passing output, focused test results, seen running, numbers. Show t
 What it costs at runtime, and whether it's mostly additive.
 
 ## Review
-What /simplify trimmed, what /qa found, and each cross-model review round: findings fixed, findings rejected and why.
+What /simplify trimmed, what /qa found, what the security review found, and each cross-model review round: findings fixed, findings rejected and why.
 
 ## Risk and rollback
 ```

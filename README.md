@@ -37,7 +37,8 @@ My own skills live in `skills/`, and setup links them into both Claude Code
 (`~/.claude/skills`) and Codex (`~/.agents/skills`):
 
 - `nunebot-review` runs simplify, QA, a review by the other model, up to three
-  rounds of reviewing only the fixes, then performance, compatibility, and proof.
+  rounds of reviewing only the fixes, then performance, compatibility, security,
+  and proof.
   Pass `unattended` when nobody is watching.
 - `nunebot-pr` commits what's left, pushes, and creates or updates the pull
   request in my format, using the ledger `nunebot-review` left in the
