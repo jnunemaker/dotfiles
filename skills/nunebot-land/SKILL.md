@@ -53,11 +53,11 @@ If something regressed, show the evidence, give the exact rollback command, and 
 
 ## 6. Report
 
-```
-Landed: <PR link>, <merge method>
-Deployed: <release or run link, or "no deploy">
-Production: <what you checked and what you saw>
-John: <steps left for me, or "nothing">
-```
+Use this Markdown list, not a code block:
+
+- **Landed:** the PR link and merge method.
+- **Deployed:** the release or run link, or "no deploy".
+- **Production:** what you checked and what you saw.
+- **John:** steps left for me, or "nothing".
 
 Then say whether this session is safe to archive.

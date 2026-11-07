@@ -34,7 +34,9 @@ Use the `qa` skill to actually use the thing and fix what's really broken. Commi
 The other model reviews, so the author never grades its own work.
 
 - **In Claude Code:** the `codex` skill, as `/codex review`.
-- **In Codex:** the `claude-code` skill, as `/claude-code review`.
+- **In Codex:** the `claude-code` skill, as `$claude-code review`.
+
+In Codex, run every Claude Code call with `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` set. Codex's sandbox only lets Claude reach Anthropic, and a blocked telemetry request fails the whole call.
 
 Decide on each finding: fix it if it's legitimate, reject it with a reason if it isn't. If nothing is legitimate, go to step 6.
 
@@ -45,7 +47,7 @@ Do at most 3 rounds of:
 1. Commit the fixes as one commit and note its SHA.
 2. Have the other model review only that commit, never the whole change again.
    - **In Claude Code:** `codex review --commit <sha>`.
-   - **In Codex:** not `/claude-code review`, which always sends the whole branch. Write a temporary prompt file outside the repo asking for a review of this diff only, with findings labelled `[P1]`, `[P2]`, `[P3]` or `NO_FINDINGS`, followed by the output of `git show <sha>`. Then run `~/.codex/skills/gstack/bin/gstack-claude-code --user-invoked --cwd "$(git rev-parse --show-toplevel)" --access none --timeout-ms 600000 < <prompt-file>` and read `result` from the JSON it prints. If it fails, the review didn't happen, so the status is `BLOCKED`.
+   - **In Codex:** not `$claude-code review`, which always sends the whole branch. Write a temporary prompt file outside the repo asking for a review of this diff only, with findings labelled `[P1]`, `[P2]`, `[P3]` or `NO_FINDINGS`, followed by the output of `git show <sha>`. Then run `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ~/.codex/skills/gstack/bin/gstack-claude-code --user-invoked --cwd "$(git rev-parse --show-toplevel)" --access none --timeout-ms 600000 < <prompt-file>` and read `result` from the JSON it prints. If it fails, the review didn't happen, so the status is `BLOCKED`.
 3. Decide on each finding as in step 4. If nothing is legitimate, go to step 6.
 
 If the third review still has legitimate findings, stop. Commit nothing else, record the open findings, and go to step 8 with status `GAVE_UP`. Chasing zero findings is how small changes turn into 3,000 line PRs.

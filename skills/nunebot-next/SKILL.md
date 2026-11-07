@@ -5,7 +5,7 @@ description: Tell me the single next step for the work in this session and any d
 
 # nunebot-next
 
-I'm asking "what's next?" Arguments, if any, narrow what I'm asking about, such as `/nunebot-next rollout`.
+I'm asking "what's next?" Arguments, if any, narrow what I'm asking about, such as `rollout`.
 
 Don't change anything while answering: no commits, pushes, merges, deploys, or edits. Reading is fine.
 
@@ -22,7 +22,7 @@ If this conversation has no work in it yet, look at my open PRs in this repo (`g
 
 ## 2. Pick the one next step
 
-My usual path is: build, `/nunebot-review`, `/nunebot-pr`, CI and review, `/nunebot-land`, roll out any flag. Find the first thing on that path that isn't done, or the next step of whatever else we're doing, like a manual setup I'm walking through. When everything's done, the next step is archiving this session.
+My usual path is: build, `nunebot-review`, `nunebot-pr`, CI and review, `nunebot-land`, roll out any flag. Find the first thing on that path that isn't done, or the next step of whatever else we're doing, like a manual setup I'm walking through. When everything's done, the next step is archiving this session.
 
 ## 3. Find my decisions
 
@@ -30,13 +30,13 @@ Only list decisions that block the next step or change it, and only ones you can
 
 ## 4. Answer
 
-Use this shape and nothing else:
+Answer with this Markdown list, not a code block, and nothing else:
 
-```
-Where: <one line on where things stand>
-Reviewed: <which review steps ran on the latest commit, and which didn't>
-Next: <the one step, who does it, and the exact command, link, or click>
-Decide: <each blocking decision with your pick, or "nothing">
-```
+- **Where:** one line on where things stand.
+- **Reviewed:** which review steps ran on the latest commit, and which didn't.
+- **Next:** the one step, who does it, and the exact command, link, or click.
+- **Decide:** each blocking decision with your pick, or "nothing".
+
+Name a skill as `/name` in Claude Code and `$name` in Codex.
 
 Leave out `Reviewed` when there's no branch. Keep each line short, with no later steps or recap. If I ask "then what?", give me the step after that the same way. If the next step is yours, end by asking whether to do it.

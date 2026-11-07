@@ -49,6 +49,13 @@ My own skills live in `skills/`, and setup links them into both Claude Code
   optionally limited to some repos or a different PR cap.
 - `simplify` is linked into Codex only, because Claude Code has it built in.
 
+So these skills can commit, push, and check deploys from Codex without asking,
+setup merges `codex/config.toml` and the `work` permission profile in
+`codex/permissions.toml` into `~/.codex/config.toml` (see `script/codex-config`).
+Codex may write anywhere in `~/github` and `~/.dotfiles` and reach only the
+hosts listed there. A command that needs another host fails with "domain is not
+on the allowlist"; add the host and rerun setup.
+
 Setup installs the Cloudflare and PlanetScale Claude Code plugins, which bring
 their hosted MCP servers, and adds the same Cloudflare and PlanetScale MCP
 servers to Codex. It also installs the pstack Claude Code plugin from Cursor's

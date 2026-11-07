@@ -1,1 +1,3 @@
 project_doc_fallback_filenames = ["CLAUDE.md"]
+default_permissions = "work"
+approvals_reviewer = "guardian_subagent"
