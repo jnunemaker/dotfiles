@@ -13,7 +13,7 @@ Naming this skill is my OK to merge and deploy. It is not my OK to roll back, ru
 
 Run `gh pr view <pr> --json number,url,state,isDraft,mergeable,reviewDecision,headRefName,headRefOid,baseRefName,body` and `gh pr checks <pr>`.
 
-- **CI still running:** wait with `gh pr checks <pr> --watch`, then continue.
+- **CI still running:** wait with `gh pr checks <pr> --watch`, then continue. "No checks reported" means the repo has no CI, which isn't a blocker.
 - **CI red, conflicts, draft, or changes requested:** stop and tell me what's blocking. Don't fix it here.
 - **Unresolved review threads:** stop and list them.
 - **Review:** check the nunebot-review ledger the way `nunebot-pr` step 2 does. If it isn't `DONE`, or its `Head` isn't the PR's head commit, say which commits weren't reviewed and ask before merging. If there's no ledger, say so and ask.
@@ -27,7 +27,7 @@ Use the merge method the repo allows (`gh repo view --json squashMergeAllowed,me
 
 Find how this repo deploys in the Deploys paragraph of brain's Nunebot prompt (`grep -m1 '^Deploys' ~/github/brain/nunebot/PROMPT.md`) and follow its repo rules. If it doesn't cover this repo, work it out from the repo (`app.json` or the Heroku GitHub integration, `.github/workflows`, `fly.toml`, Kamal's `config/deploy.yml`, Workers Builds).
 
-- **Heroku auto-deploy:** wait in one blocking command until a release for the merge commit appears, then wait out preboot (about 3 minutes), for example `until heroku releases --app <app> -n 3 | grep -q <short-sha>; do sleep 30; done; sleep 180`.
+- **Heroku auto-deploy:** wait in one blocking command until a release for the merge commit appears, then wait out preboot (about 3 minutes). Heroku shows 8-character SHAs, so match on the first 7 (`git rev-parse --short=7 <merge-sha>`), and give up after about 20 minutes: `for i in $(seq 40); do heroku releases --app <app> -n 3 | grep -q "Deploy <sha7>" && break; sleep 30; done; sleep 180`. If no release appeared, say so and stop.
 - **GitHub Actions deploy:** find the run for the merge commit and `gh run watch` it.
 - **Cloudflare Workers Builds:** watch the production `Workers Builds` check on the merge commit.
 - **Manual (`fly deploy`, `kamal deploy`):** run the repo's deploy command from a worktree at the merge commit.
