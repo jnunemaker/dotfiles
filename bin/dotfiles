@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# dotfiles: run my dotfiles commands on ~/.dotfiles from any directory.
+
+set -euo pipefail
+
+dotfiles="$HOME/.dotfiles"
+
+usage() {
+  cat <<'EOF'
+Usage: dotfiles <command>
+
+Commands:
+  sync    Pull ~/.dotfiles, then run setup here and on my other Macs.
+  setup   Run setup without pulling, such as after a local edit.
+  help    Show this help.
+EOF
+}
+
+case "${1:-help}" in
+  sync)
+    git -C "$dotfiles" pull --ff-only -q
+    exec "$dotfiles/script/setup"
+    ;;
+  setup)
+    exec "$dotfiles/script/setup"
+    ;;
+  help | -h | --help)
+    usage
+    ;;
+  *)
+    echo "dotfiles: unknown command '$1'" >&2
+    usage >&2
+    exit 1
+    ;;
+esac

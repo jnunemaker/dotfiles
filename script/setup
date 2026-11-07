@@ -544,6 +544,12 @@ done
 
 symlink_config "$PWD/codex/AGENTS.md" "$HOME/.codex/AGENTS.md" "codex-AGENTS.md"
 
+# Put my commands (dotfiles, t3-settings-save, ...) on PATH from anywhere.
+for command_path in "$PWD"/bin/*; do
+  command_name=$(basename "$command_path")
+  symlink_config "$command_path" "$HOME/.local/bin/$command_name" "local-bin-$command_name"
+done
+
 # Claude Code doesn't read AGENTS.md, so its global CLAUDE.md imports the Codex
 # one. The rest of that file is left alone, since gstack writes to it.
 claude_md="$HOME/.claude/CLAUDE.md"

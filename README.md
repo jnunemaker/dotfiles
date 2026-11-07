@@ -7,6 +7,14 @@ git clone https://github.com/jnunemaker/dotfiles.git ~/.dotfiles
 ~/.dotfiles/script/setup
 ```
 
+After that, run `dotfiles` from any directory. Setup links it and the other
+commands in `bin/` into `~/.local/bin`.
+
+- `dotfiles sync` pulls `~/.dotfiles`, then runs setup here and on my other
+  Macs.
+- `dotfiles setup` runs setup without pulling, such as after a local edit.
+- `dotfiles help` lists the commands.
+
 Setup is silent when everything works. If a step fails, it prints what it was
 doing and that step's full output, then stops. Only steps that need you, such as
 the Homebrew installer's password prompt or Codex's Cloudflare, Honeybadger, and
