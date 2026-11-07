@@ -14,6 +14,13 @@ Help Scout sign-ins and the one-time Jelly, Fireside, and Ahrefs token prompts,
 show their output as they run. If setup replaces existing files, it says where it
 moved them.
 
+At the end, setup runs itself on my other Macs: the online macOS devices on my
+Tailscale network that belong to my Tailscale user. On each it pulls
+`~/.dotfiles` and runs setup over SSH without a terminal, so a step that needs
+me prints a note to finish it there instead of waiting. A Mac it can't SSH into
+is skipped with a note; turn on Remote Login there (System Settings → General →
+Sharing) and add this Mac's SSH key to its `~/.ssh/authorized_keys`.
+
 Setup installs Bun, Claude Code, Codex, and the T3 Code CLI (`t3`) with their
 official user-local installers when they are missing. It then installs Homebrew when needed,
 installs missing packages from the `Brewfile` (including Git) without upgrading
