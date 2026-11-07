@@ -30,13 +30,21 @@ Only list decisions that block the next step or change it, and only ones you can
 
 ## 4. Answer
 
-Answer with this Markdown list, not a code block, and nothing else:
+Answer with a Markdown list in this order, and nothing else. Never use a code block.
 
-- **Where:** one line on where things stand.
-- **Reviewed:** which review steps ran on the latest commit, and which didn't.
-- **Next:** the one step, who does it, and the exact command, link, or click.
-- **Decide:** each blocking decision with your pick, or "nothing".
+- **Next:** the one step and who does it, then the exact command, link, or click in backticks.
+- **Decide:** "nothing", or one numbered sub-bullet per decision, each ending with **Pick:** and your choice.
+- **Status:** facts as short fragments joined with ` · `, such as the PR link, mergeable, CI, pushed.
+- **Reviewed:** each review step as ✅ or ❌ with its name, joined with ` · `, plus the unreviewed commits if any.
 
-Name a skill as `/name` in Claude Code and `$name` in Codex.
+Write fragments, not sentences, and keep every line under about 12 words, so I can scan it in two seconds. Put any detail I need in a sub-bullet instead of a longer line. Link a PR as `owner/repo#123` and leave out its title. No later steps or recap.
 
-Leave out `Reviewed` when there's no branch. Keep each line short, with no later steps or recap. If I ask "then what?", give me the step after that the same way. If the next step is yours, end by asking whether to do it.
+For example:
+
+- **Next:** I run `/nunebot-review` on this branch
+- **Decide:**
+  1. Full review of all 147 files before landing? **Pick:** yes, most were never cross-reviewed
+- **Status:** boxoutsports/boxoutsports#5783 · mergeable · CI green · pushed
+- **Reviewed:** ✅ Codex · ❌ nunebot-review · ❌ last 2 commits
+
+Name a skill as `/name` in Claude Code and `$name` in Codex. Leave out `Reviewed` when there's no branch. If I ask "then what?", give me the step after that the same way. If the next step is yours, end with one short question asking whether to do it.
