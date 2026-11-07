@@ -19,18 +19,27 @@ EOF
 }
 
 # True when T3 Code's settings on this Mac changed in the app since setup last
-# installed them. Setup keeps a copy of what it installed for this check; without
-# one, compare with the settings in ~/.dotfiles.
+# installed them. Setup keeps a copy of what it installed for this check. Without
+# one, a file matching any version committed to ~/.dotfiles came from setup.
 t3_changed() {
-  local name app installed
+  local name app installed commit content
   for name in $t3_files; do
     app="$HOME/.t3/userdata/$name.json"
     installed="$HOME/.local/state/dotfiles/t3/$name.json"
-    [ -f "$installed" ] || installed="$dotfiles/t3/$name.json"
     [ -f "$app" ] || continue
-    if [ "$(jq -S . "$app" 2>/dev/null)" != "$(jq -S . "$installed")" ]; then
-      return 0
+    content=$(jq -S . "$app" 2>/dev/null) || return 0
+
+    if [ -f "$installed" ]; then
+      [ "$content" != "$(jq -S . "$installed")" ] && return 0
+      continue
     fi
+
+    for commit in $(git -C "$dotfiles" log --format=%H -- "t3/$name.json"); do
+      if [ "$content" = "$(git -C "$dotfiles" show "$commit:t3/$name.json" 2>/dev/null | jq -S . 2>/dev/null)" ]; then
+        continue 2
+      fi
+    done
+    return 0
   done
   return 1
 }
