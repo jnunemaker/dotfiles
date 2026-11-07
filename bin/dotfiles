@@ -4,22 +4,102 @@
 set -euo pipefail
 
 dotfiles="$HOME/.dotfiles"
+t3_files="settings client-settings keybindings"
 
 usage() {
   cat <<'EOF'
 Usage: dotfiles <command>
 
 Commands:
-  sync    Pull ~/.dotfiles, then run setup here and on my other Macs.
+  sync    Offer to save changed T3 Code settings, pull ~/.dotfiles, then run
+          setup here and on my other Macs.
   setup   Run setup without pulling, such as after a local edit.
   help    Show this help.
 EOF
 }
 
+# True when T3 Code's settings on this Mac changed in the app since setup last
+# installed them. Setup keeps a copy of what it installed for this check. Without
+# one, a file matching any version committed to ~/.dotfiles came from setup.
+t3_changed() {
+  local name app installed commit content
+  for name in $t3_files; do
+    app="$HOME/.t3/userdata/$name.json"
+    installed="$HOME/.local/state/dotfiles/t3/$name.json"
+    [ -f "$app" ] || continue
+    content=$(jq -S . "$app" 2>/dev/null) || return 0
+
+    if [ -f "$installed" ]; then
+      [ "$content" != "$(jq -S . "$installed")" ] && return 0
+      continue
+    fi
+
+    for commit in $(git -C "$dotfiles" log --format=%H -- "t3/$name.json"); do
+      if [ "$content" = "$(git -C "$dotfiles" show "$commit:t3/$name.json" 2>/dev/null | jq -S . 2>/dev/null)" ]; then
+        continue 2
+      fi
+    done
+    return 0
+  done
+  return 1
+}
+
+# Copy this Mac's T3 Code settings into ~/.dotfiles/t3 and commit them. The repo
+# is public, so refuse to commit settings that look like they hold a secret.
+save_t3() {
+  local name
+  if ! command -v gitleaks >/dev/null; then
+    echo "gitleaks is missing, so T3 Code settings weren't saved. Run: brew install gitleaks" >&2
+    exit 1
+  fi
+
+  for name in $t3_files; do
+    if [ -f "$HOME/.t3/userdata/$name.json" ]; then
+      jq . "$HOME/.t3/userdata/$name.json" >"$dotfiles/t3/$name.json"
+    fi
+  done
+
+  if ! gitleaks dir "$dotfiles/t3" --config "$dotfiles/t3/gitleaks.toml" --no-banner --redact --verbose --log-level warn; then
+    git -C "$dotfiles" restore --source=HEAD --staged --worktree t3
+    echo "gitleaks flagged these settings or couldn't scan them, so nothing was saved." >&2
+    echo "Remove the secret from T3 Code, then sync again." >&2
+    exit 1
+  fi
+
+  git -C "$dotfiles" add t3
+  git -C "$dotfiles" diff --cached --quiet -- t3 ||
+    git -C "$dotfiles" commit --quiet -m "Save T3 Code settings" -- t3
+}
+
+sync() {
+  local saved=""
+
+  if t3_changed; then
+    if [ -t 0 ]; then
+      printf "T3 Code settings changed on this Mac. Save them to dotfiles? [Y/n] "
+      read -r answer
+      case "$answer" in
+        n* | N*) echo "Not saved. Setup will back them up and use the ones in dotfiles." ;;
+        *) save_t3 && saved=1 ;;
+      esac
+    else
+      echo "T3 Code settings changed on this Mac. Setup will back them up; run dotfiles sync in a terminal to save them instead."
+    fi
+  fi
+
+  if [ -n "$saved" ]; then
+    git -C "$dotfiles" pull --rebase -q
+    git -C "$dotfiles" push -q
+  else
+    git -C "$dotfiles" pull --ff-only -q
+  fi
+
+  exec "$dotfiles/script/setup"
+}
+
 case "${1:-help}" in
   sync)
-    git -C "$dotfiles" pull --ff-only -q
-    exec "$dotfiles/script/setup"
+    sync
     ;;
   setup)
     exec "$dotfiles/script/setup"

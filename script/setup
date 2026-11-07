@@ -544,7 +544,16 @@ done
 
 symlink_config "$PWD/codex/AGENTS.md" "$HOME/.codex/AGENTS.md" "codex-AGENTS.md"
 
-# Put my commands (dotfiles, t3-settings-save, ...) on PATH from anywhere.
+# Put my commands (dotfiles, dev-log) on PATH from anywhere, and remove links
+# to commands that were deleted from bin/.
+for command_link in "$HOME"/.local/bin/*; do
+  if [ -L "$command_link" ] && [ ! -e "$command_link" ]; then
+    case "$(readlink "$command_link")" in
+      "$PWD"/bin/*) rm "$command_link" ;;
+    esac
+  fi
+done
+
 for command_path in "$PWD"/bin/*; do
   command_name=$(basename "$command_path")
   symlink_config "$command_path" "$HOME/.local/bin/$command_name" "local-bin-$command_name"
@@ -579,13 +588,49 @@ done
 symlink_config "$PWD/skills/simplify" "$HOME/.agents/skills/simplify" "agents-skills-simplify"
 
 # T3 Code replaces its settings and keybindings files when saving, which breaks
-# symlinks, so copy them in instead. Run t3-settings-save to bring app changes back here.
+# symlinks, so copy them in instead. Setup keeps a copy of what it installed, so
+# it can tell settings changed in the app from settings changed in this repo.
+# dotfiles sync offers to save app changes here first. When another Mac runs
+# this one's setup, app changes are left alone so they can be saved later.
+t3_installed_dir="$HOME/.local/state/dotfiles/t3"
+mkdir -p "$t3_installed_dir"
+
+# True when the app's file matches a version of it ever committed here, meaning
+# setup put it there. Used before setup has kept a copy of what it installed.
+t3_matches_history() {
+  local file="$1" name="$2" commit app
+  app=$(jq -S . "$file" 2>/dev/null) || return 1
+  for commit in $(git log --format=%H -- "t3/$name.json"); do
+    if [ "$app" = "$(git show "$commit:t3/$name.json" 2>/dev/null | jq -S . 2>/dev/null)" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 for t3_settings in settings client-settings keybindings; do
   t3_source="$PWD/t3/$t3_settings.json"
   t3_target="$HOME/.t3/userdata/$t3_settings.json"
+  t3_installed="$t3_installed_dir/$t3_settings.json"
 
   if [ -f "$t3_target" ] && [ ! -L "$t3_target" ] &&
     [ "$(jq -S . "$t3_source")" = "$(jq -S . "$t3_target" 2>/dev/null)" ]; then
+    cp "$t3_source" "$t3_installed"
+    continue
+  fi
+
+  # Changed in the app since setup last installed it (or never installed by setup).
+  t3_app_changed=""
+  if [ -f "$t3_target" ] && [ ! -L "$t3_target" ]; then
+    if [ -f "$t3_installed" ]; then
+      [ "$(jq -S . "$t3_target" 2>/dev/null)" != "$(jq -S . "$t3_installed")" ] && t3_app_changed=1
+    elif ! t3_matches_history "$t3_target" "$t3_settings"; then
+      t3_app_changed=1
+    fi
+  fi
+
+  if [ -n "$DOTFILES_SETUP_REMOTE" ] && [ -n "$t3_app_changed" ]; then
+    echo "Leaving T3 Code's $t3_settings.json alone: it changed on this Mac. Run dotfiles sync here to save it."
     continue
   fi
 
@@ -596,6 +641,7 @@ for t3_settings in settings client-settings keybindings; do
   fi
 
   cp "$t3_source" "$t3_target"
+  cp "$t3_source" "$t3_installed"
 done
 
 # Install Cloudflare's security-audit skill for Claude Code and Codex. The repo

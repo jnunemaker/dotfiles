@@ -10,8 +10,8 @@ git clone https://github.com/jnunemaker/dotfiles.git ~/.dotfiles
 After that, run `dotfiles` from any directory. Setup links it and the other
 commands in `bin/` into `~/.local/bin`.
 
-- `dotfiles sync` pulls `~/.dotfiles`, then runs setup here and on my other
-  Macs.
+- `dotfiles sync` offers to save changed T3 Code settings, pulls `~/.dotfiles`,
+  then runs setup here and on my other Macs.
 - `dotfiles setup` runs setup without pulling, such as after a local edit.
 - `dotfiles help` lists the commands.
 
@@ -129,10 +129,13 @@ T3 Code's settings live in `t3/settings.json` (server settings such as the
 default model and enabled providers) and `t3/client-settings.json` (interface
 preferences), and shortcuts live in `t3/keybindings.json`. Cmd+T opens the
 in-app browser when the right panel is closed, and the right panel's new-tab
-menu when it is open. T3 Code replaces these files when it saves, so setup copies them
-into `~/.t3/userdata/` rather than linking them, backing up any that differ.
-After changing settings in the app, run `t3-settings-save` to copy them back
-here, commit, and push. Sign-ins, secrets, and threads stay on each Mac.
+menu when it is open. T3 Code replaces these files when it saves, so setup
+copies them into `~/.t3/userdata/` rather than linking them, backing up any that
+differ. When the app's settings changed since setup installed them,
+`dotfiles sync` offers to save them here (after a gitleaks scan, since this repo
+is public) and push them before setting up. When the other Mac runs setup over
+SSH, it leaves changed settings alone and says to run `dotfiles sync` there.
+Sign-ins, secrets, and threads stay on each Mac.
 
 Git and the external tools referenced by `.gitconfig` are managed by the
 `Brewfile`, including Delta (the pager), hunk (for reviewing agent changes), Git LFS, GitHub CLI, Heroku CLI, and GnuPG.
