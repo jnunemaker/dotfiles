@@ -765,12 +765,16 @@ else
       echo "Skipping setup on $mac_name: can't SSH in. Turn on Remote Login there and add this Mac's SSH key to its ~/.ssh/authorized_keys."
       continue
     fi
-    echo "Running setup on $mac_name"
-    ssh -o BatchMode=yes -o ConnectTimeout=5 "$mac_ip" \
+    printf "Setting up %s... " "$mac_name"
+    if mac_output=$(ssh -o BatchMode=yes -o ConnectTimeout=5 "$mac_ip" \
       'zsh -lc "cd ~/.dotfiles && git pull --ff-only -q && DOTFILES_SETUP_REMOTE=1 script/setup"' \
-      </dev/null 2>&1 | sed "s/^/    /"
-    if [ "${PIPESTATUS[0]}" -ne 0 ]; then
-      echo "Setup on $mac_name stopped early. Finish it there with: cd ~/.dotfiles && script/setup"
+      </dev/null 2>&1 || exit $?); then
+      echo "done"
+      [ -z "$mac_output" ] || printf '%s\n' "$mac_output" | sed "s/^/    /"
+    else
+      echo "failed"
+      [ -z "$mac_output" ] || printf '%s\n' "$mac_output" | sed "s/^/    /"
+      echo "    Finish it there with: dotfiles setup"
     fi
   done <<< "$other_macs"
 fi
