@@ -69,7 +69,7 @@ Check for an existing PR with `gh pr view --json url,state`. Treat a closed or m
 - **New:** `gh pr create --base <base> --title "<title>" --body-file <file>`, ready for review, not a draft. The title is short and says what changed. Link an issue with `Fixes #123` when there is one.
 - **Existing:** `gh pr edit --title "<title>" --body-file <file>`.
 - **Screenshots:** attach each image from the ledger with `--attach './after.png#alt text'` on `gh pr create` or `gh pr edit`. This needs gh 2.99 or newer. `--body-file` drops images already attached, so after editing a body, attach them again.
-- **`needs-john`:** if either John section is present, add this label, creating it if it's missing. A pending gem release or Go tag never earns this label.
+- **`needs-john`:** only when the PR is blocked on me: a decision only I can make, or something only I can run before it can merge. Add the label, creating it if it's missing, and remove it once nothing is blocked. Steps for after merge or deploy never earn it, and neither does a pending gem release or Go tag.
 - **Labels I or the caller asked for:** add them, creating them if they're missing.
 
 ## 7. Report
