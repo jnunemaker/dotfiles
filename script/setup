@@ -544,6 +544,12 @@ done
 
 symlink_config "$PWD/codex/AGENTS.md" "$HOME/.codex/AGENTS.md" "codex-AGENTS.md"
 
+# Put my commands (dotfiles, t3-settings-save, ...) on PATH from anywhere.
+for command_path in "$PWD"/bin/*; do
+  command_name=$(basename "$command_path")
+  symlink_config "$command_path" "$HOME/.local/bin/$command_name" "local-bin-$command_name"
+done
+
 # Claude Code doesn't read AGENTS.md, so its global CLAUDE.md imports the Codex
 # one. The rest of that file is left alone, since gstack writes to it.
 claude_md="$HOME/.claude/CLAUDE.md"
@@ -680,6 +686,47 @@ fi
 if [ ! -d ~/.keyboard ]; then
   quietly "Cloning keyboard" git clone https://github.com/jasonrudolph/keyboard.git ~/.keyboard
   quietly_sh "Setting up keyboard" "cd ~/.keyboard && script/setup"
+fi
+
+# Run setup on my other Macs too: the online macOS devices on my tailnet that
+# belong to my Tailscale user. Pull their dotfiles first, then run setup there
+# without a terminal, so steps that need me print a note instead of waiting.
+# DOTFILES_SETUP_REMOTE stops that run from calling back here. Only do this
+# from ~/.dotfiles on a pushed main, since the other Macs pull main.
+if [ -n "$DOTFILES_SETUP_REMOTE" ]; then
+  :
+elif ! [ "$PWD" -ef "$HOME/.dotfiles" ] ||
+  [ "$(git branch --show-current)" != "main" ] ||
+  [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main 2>/dev/null)" ]; then
+  echo "Skipping setup on other Macs: this isn't ~/.dotfiles on main matching origin/main. Pull or push, then rerun from there."
+else
+  tailscale_cli=$(command -v tailscale || true)
+  [ -z "$tailscale_cli" ] && [ -x /Applications/Tailscale.app/Contents/MacOS/Tailscale ] &&
+    tailscale_cli=/Applications/Tailscale.app/Contents/MacOS/Tailscale
+
+  other_macs=""
+  if [ -n "$tailscale_cli" ] && command -v jq &>/dev/null; then
+    other_macs=$("$tailscale_cli" status --json 2>/dev/null | jq -r '
+      .Self.UserID as $me
+      | .Peer[]?
+      | select(.UserID == $me and .OS == "macOS" and .Online)
+      | "\(.TailscaleIPs[0])\t\(.HostName)"' 2>/dev/null || true)
+  fi
+
+  while IFS=$'\t' read -r mac_ip mac_name; do
+    [ -z "$mac_ip" ] && continue
+    if ! ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new "$mac_ip" true </dev/null &>/dev/null; then
+      echo "Skipping setup on $mac_name: can't SSH in. Turn on Remote Login there and add this Mac's SSH key to its ~/.ssh/authorized_keys."
+      continue
+    fi
+    echo "Running setup on $mac_name"
+    ssh -o BatchMode=yes -o ConnectTimeout=5 "$mac_ip" \
+      'zsh -lc "cd ~/.dotfiles && git pull --ff-only -q && DOTFILES_SETUP_REMOTE=1 script/setup"' \
+      </dev/null 2>&1 | sed "s/^/    /"
+    if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+      echo "Setup on $mac_name stopped early. Finish it there with: cd ~/.dotfiles && script/setup"
+    fi
+  done <<< "$other_macs"
 fi
 
 # Files that were replaced are worth knowing about every time it happens.

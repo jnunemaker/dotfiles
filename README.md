@@ -7,12 +7,28 @@ git clone https://github.com/jnunemaker/dotfiles.git ~/.dotfiles
 ~/.dotfiles/script/setup
 ```
 
+After that, run `dotfiles` from any directory. Setup links it and the other
+commands in `bin/` into `~/.local/bin`.
+
+- `dotfiles sync` pulls `~/.dotfiles`, then runs setup here and on my other
+  Macs.
+- `dotfiles setup` runs setup without pulling, such as after a local edit.
+- `dotfiles help` lists the commands.
+
 Setup is silent when everything works. If a step fails, it prints what it was
 doing and that step's full output, then stops. Only steps that need you, such as
 the Homebrew installer's password prompt or Codex's Cloudflare, Honeybadger, and
 Help Scout sign-ins and the one-time Jelly, Fireside, and Ahrefs token prompts,
 show their output as they run. If setup replaces existing files, it says where it
 moved them.
+
+At the end, when run from `~/.dotfiles` on `main` matching `origin/main`, setup
+runs itself on my other Macs: the online macOS devices on my Tailscale network
+that belong to my Tailscale user. On each it pulls
+`~/.dotfiles` and runs setup over SSH without a terminal, so a step that needs
+me prints a note to finish it there instead of waiting. A Mac it can't SSH into
+is skipped with a note; turn on Remote Login there (System Settings → General →
+Sharing) and add this Mac's SSH key to its `~/.ssh/authorized_keys`.
 
 Setup installs Bun, Claude Code, Codex, and the T3 Code CLI (`t3`) with their
 official user-local installers when they are missing. It then installs Homebrew when needed,
