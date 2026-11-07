@@ -24,7 +24,7 @@ If this conversation has no work in it yet, look at my open PRs in this repo (`g
 
 My usual path is: build, `nunebot-review`, `nunebot-pr`, CI and review, `nunebot-land`, roll out any flag. Find the first thing on that path that isn't done, or the next step of whatever else we're doing, like a manual setup I'm walking through. When everything's done, the next step is archiving this session.
 
-When the next step is merging, check it's really ready: mergeable, CI green, no unresolved review threads, no unchecked `## John: before merge` items, every commit reviewed or named as unreviewed, and a PR body that covers every commit. Update an out-of-date body after asking, since this skill doesn't change anything.
+When the next step is merging, check it's really ready: mergeable, CI green, no unresolved review threads, no unchecked `## John: before merge` items, every commit reviewed or named as unreviewed, and a PR body that covers every commit. An out-of-date body is a blocker, fixed by rerunning `/nunebot-pr`.
 
 If a review ran and only later commits weren't reviewed, the next step is reviewing just those commits (`codex review --commit <sha>` in Claude Code, or the `nunebot-review` step 5 prompt in Codex), not a full `/nunebot-review`. Suggest the full review only when those commits change behavior that no earlier review covered.
 

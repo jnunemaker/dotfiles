@@ -38,8 +38,7 @@ My own skills live in `skills/`, and setup links them into both Claude Code
 
 - `nunebot-review` runs simplify, QA, a review by the other model, up to three
   rounds of reviewing only the fixes, then performance, compatibility, security,
-  and proof.
-  Pass `unattended` when nobody is watching.
+  and proof. Pass `unattended` when nobody is watching.
 - `nunebot-pr` commits what's left, pushes, and creates or updates the pull
   request in my format, using the ledger `nunebot-review` left in the
   worktree's ignored `.nunebot/` folder.
