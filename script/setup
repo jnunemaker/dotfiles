@@ -562,7 +562,8 @@ symlink_config "$PWD/mise/config.toml" "$HOME/.config/mise/config.toml" "mise-co
 symlink_config "$PWD/claude/rules/pstack-models.md" "$HOME/.claude/rules/pstack-models.md" "claude-rules-pstack-models.md"
 
 # Link my own skills into Claude Code and Codex.
-for skill in nunebot-review nunebot-pr; do
+for skill_dir in "$PWD"/skills/nunebot-*/; do
+  skill=$(basename "$skill_dir")
   symlink_config "$PWD/skills/$skill" "$HOME/.claude/skills/$skill" "claude-skills-$skill"
   symlink_config "$PWD/skills/$skill" "$HOME/.agents/skills/$skill" "agents-skills-$skill"
 done
