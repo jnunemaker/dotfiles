@@ -49,7 +49,7 @@ The problem, with a link to its evidence.
 ## What changed
 
 ## Proof
-Failing then passing output, suite result, seen running, numbers. Show the real output.
+Failing then passing output, focused test results, seen running, numbers. Show the real output.
 
 ## Performance & compatibility
 What it costs at runtime, and whether it's mostly additive.

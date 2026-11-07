@@ -11,7 +11,7 @@ This is a checklist. A nested skill returning does not end your turn: when one f
 
 If the arguments include `unattended`, nobody is watching. When a skill stops to ask a question, take its recommended option and record the choice in the ledger. Otherwise ask me.
 
-Never run `git stash` (it's shared across worktrees), and never touch the default branch. The repo's `AGENTS.md` or `CLAUDE.md` wins over anything here, such as a rule not to run the full suite locally.
+Never run `git stash` (it's shared across worktrees), and never touch the default branch. The repo's `AGENTS.md` or `CLAUDE.md` wins over anything here.
 
 ## 1. Set up
 
@@ -64,7 +64,7 @@ Answer both from the final code, for someone who hasn't read it:
 On the final branch, gather every one of these that applies. Keep the actual output, not a description of it.
 
 - **Failing, then passing:** a test that fails on the base branch and passes here, with both outputs.
-- **Green suite:** the full suite and linters. If the repo forbids running the suite locally, run the affected tests and say CI will cover the rest.
+- **Focused tests:** run the tests for what changed and for what the change could break, such as its callers, shared code it touches, and the views or jobs that use it. Lint the changed files. Don't run the full suite locally; CI runs it, so say CI covers the rest.
 - **Seen running:** run the app and exercise the change. For a gem or library, a script or console session.
 - **Screenshots, when a person would see the change:** views, CSS, copy, emails, and new UI states, including transient ones like loading. A before and after pair at the same viewport, cropped to the change, about 4 images at most. Save them to `.nunebot/proof/` and never commit them. Skip them where another proof is stronger: text diffs for machine-readable output, curl output for status codes and auth, a byte-identical render diff for refactors, a terminal transcript for CLI and backend work.
 - **Proven unused:** for removals, the searches and signals showing nothing references the code, plus the line count removed.
