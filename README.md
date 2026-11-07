@@ -41,6 +41,12 @@ My own skills live in `skills/`, and setup links them into both Claude Code
   Pass `unattended` when nobody is watching.
 - `nunebot-pr` commits what's left, pushes, and creates or updates the pull
   request in my format, using the ledger `nunebot-review` left in the git directory.
+- `nunebot-next` answers "what's next?" with where things stand, what's been
+  reviewed, the one next step, and any decisions only I can make.
+- `nunebot-land` merges a ready pull request once CI is green, watches the
+  deploy, checks production, and cleans up the branch.
+- `nunebot-run` runs one Nunebot pass from `nunebot/PROMPT.md` in my brain repo,
+  optionally limited to some repos or a different PR cap.
 - `simplify` is linked into Codex only, because Claude Code has it built in.
 
 Setup installs the Cloudflare and PlanetScale Claude Code plugins, which bring
