@@ -17,7 +17,15 @@ target=${1:-$HOME/.codex/config.toml}
 
 awk -v settings_file="$dotfiles/codex/config.toml" -v block_file="$dotfiles/codex/permissions.toml" '
   function key_of(line) {
+    sub(/^[[:space:]]+/, "", line)
     sub(/[[:space:]]*=.*/, "", line)
+    return line
+  }
+
+  function table_of(line) {
+    sub(/^[[:space:]]+/, "", line)
+    sub(/\][[:space:]]*(#.*)?$/, "]", line)
+    gsub(/[[:space:]]/, "", line)
     return line
   }
 
@@ -48,12 +56,12 @@ awk -v settings_file="$dotfiles/codex/config.toml" -v block_file="$dotfiles/code
   /^# END dotfiles codex permissions$/ { in_block = 0; next }
   in_block { next }
 
-  /^\[/ {
+  /^[[:space:]]*\[/ {
     if (table == "") {
       emit_missing_settings()
       if (last != "") emit("")
     }
-    table = $0
+    table = table_of($0)
     if (table == "[sandbox_workspace_write]") next
     emit($0)
     if (table == "[features]") {
@@ -64,10 +72,10 @@ awk -v settings_file="$dotfiles/codex/config.toml" -v block_file="$dotfiles/code
   }
 
   table == "[sandbox_workspace_write]" { next }
-  table == "" && /^sandbox_mode[[:space:]]*=/ { next }
-  table == "[features]" && /^network_proxy[[:space:]]*=/ { next }
+  table == "" && /^[[:space:]]*sandbox_mode[[:space:]]*=/ { next }
+  table == "[features]" && /^[[:space:]]*network_proxy[[:space:]]*=/ { next }
 
-  table == "" && /^[A-Za-z_]+[[:space:]]*=/ {
+  table == "" && /^[[:space:]]*[A-Za-z_]+[[:space:]]*=/ {
     key = key_of($0)
     if (key in settings) {
       emit(settings[key])

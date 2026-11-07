@@ -42,6 +42,13 @@ enabled = true
 "**.planetscale.com" = "allow"
 "**.psdb.cloud" = "allow"
 "**.honeybadger.io" = "allow"
+# MCP servers setup adds to Codex
+"mcp.cloudflare.com" = "allow"
+"mcp.pscale.dev" = "allow"
+"mcp.helpscout.net" = "allow"
+"mcp.letsjelly.com" = "allow"
+"api.crisp.chat" = "allow"
+"api.ahrefs.com" = "allow"
 # Packages
 "rubygems.org" = "allow"
 "**.rubygems.org" = "allow"
