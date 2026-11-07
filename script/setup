@@ -544,7 +544,16 @@ done
 
 symlink_config "$PWD/codex/AGENTS.md" "$HOME/.codex/AGENTS.md" "codex-AGENTS.md"
 
-# Put my commands (dotfiles, dev-log) on PATH from anywhere.
+# Put my commands (dotfiles, dev-log) on PATH from anywhere, and remove links
+# to commands that were deleted from bin/.
+for command_link in "$HOME"/.local/bin/*; do
+  if [ -L "$command_link" ] && [ ! -e "$command_link" ]; then
+    case "$(readlink "$command_link")" in
+      "$PWD"/bin/*) rm "$command_link" ;;
+    esac
+  fi
+done
+
 for command_path in "$PWD"/bin/*; do
   command_name=$(basename "$command_path")
   symlink_config "$command_path" "$HOME/.local/bin/$command_name" "local-bin-$command_name"
