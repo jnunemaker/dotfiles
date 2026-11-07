@@ -16,18 +16,18 @@ Run `gh pr view <pr> --json number,url,state,isDraft,mergeable,reviewDecision,he
 - **CI still running:** wait with `gh pr checks <pr> --watch`, then continue. "No checks reported" means the repo has no CI, which isn't a blocker.
 - **CI red, conflicts, draft, or changes requested:** stop and tell me what's blocking. Don't fix it here.
 - **Unresolved review threads:** stop and list them.
-- **Review:** check the nunebot-review ledger the way `nunebot-pr` step 2 does. If it isn't `DONE`, or its `Head` isn't the PR's head commit, say which commits weren't reviewed and ask before merging. If there's no ledger, say so and ask.
+- **Review:** find the worktree that has the PR's head branch checked out (`git worktree list`). No worktree means no ledger. Otherwise check that worktree's nunebot-review ledger the way `nunebot-pr` step 2 does, using that worktree's `HEAD`. If it isn't `DONE`, or its `Head` isn't the PR's head commit, say which commits weren't reviewed and ask before merging. If there's no ledger, say so and ask.
 - **`## John: before merge`:** if the PR body has unchecked items there, show them and ask whether they're done.
 
 ## 2. Merge
 
-Use the merge method the repo allows (`gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed`). If it allows more than one, match how recent PRs were merged. Delete the remote branch yourself in step 5.
+Use the merge method the repo allows (`gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed`). If it allows more than one, match how recent PRs were merged. Pass `--match-head-commit <headRefOid>` from step 1, so a push after your checks stops the merge. Delete the remote branch yourself in step 5.
 
 ## 3. Watch the deploy
 
 Find how this repo deploys in the Deploys paragraph of brain's Nunebot prompt (`grep -m1 '^Deploys' ~/github/brain/nunebot/PROMPT.md`) and follow its repo rules. If it doesn't cover this repo, work it out from the repo (`app.json` or the Heroku GitHub integration, `.github/workflows`, `fly.toml`, Kamal's `config/deploy.yml`, Workers Builds).
 
-- **Heroku auto-deploy:** wait in one blocking command until a release for the merge commit appears, then wait out preboot (about 3 minutes). Heroku shows 8-character SHAs, so match on the first 7 (`git rev-parse --short=7 <merge-sha>`), and give up after about 20 minutes: `for i in $(seq 40); do heroku releases --app <app> -n 3 | grep -q "Deploy <sha7>" && break; sleep 30; done; sleep 180`. If no release appeared, say so and stop.
+- **Heroku auto-deploy:** wait in one blocking command for the merge commit's release to finish. Heroku shows 8-character SHAs, so match on the first 7 (`git rev-parse --short=7 <merge-sha>`), and give up after about 20 minutes: `for i in $(seq 40); do line=$(heroku releases --app <app> -n 5 | grep "Deploy <sha7>"); case "$line" in ""|*pending*|*executing*) sleep 30 ;; *) break ;; esac; done; echo "${line:-no release}"`. If it printed `no release` or the line says `failed`, stop and report it. Otherwise wait out preboot (`sleep 180`).
 - **GitHub Actions deploy:** find the run for the merge commit and `gh run watch` it.
 - **Cloudflare Workers Builds:** watch the production `Workers Builds` check on the merge commit.
 - **Manual (`fly deploy`, `kamal deploy`):** run the repo's deploy command from a worktree at the merge commit.
