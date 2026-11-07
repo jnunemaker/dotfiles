@@ -20,6 +20,8 @@ If the prompt is missing, stop and say so. Don't run from memory.
 
 Say in one line which repos you'll run, the cap, and any extra items. Then start without waiting.
 
+If your tool runs fewer subagents at once than the prompt's lanes, use fewer lanes, keeping the prompt's priority order.
+
 ## Finish
 
 If a rule in the prompt turned out wrong or missing during the run, don't change `PROMPT.md` yourself. After the prompt's final report, list the change you'd make, then add one line: which repos are now at the PR cap.

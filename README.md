@@ -37,10 +37,11 @@ My own skills live in `skills/`, and setup links them into both Claude Code
 (`~/.claude/skills`) and Codex (`~/.agents/skills`):
 
 - `nunebot-review` runs simplify, QA, a review by the other model, up to three
-  rounds of reviewing only the fixes, then performance, compatibility, and proof.
-  Pass `unattended` when nobody is watching.
+  rounds of reviewing only the fixes, then performance, compatibility, security,
+  and proof. Pass `unattended` when nobody is watching.
 - `nunebot-pr` commits what's left, pushes, and creates or updates the pull
-  request in my format, using the ledger `nunebot-review` left in the git directory.
+  request in my format, using the ledger `nunebot-review` left in the
+  worktree's ignored `.nunebot/` folder.
 - `nunebot-next` answers "what's next?" with where things stand, what's been
   reviewed, the one next step, and any decisions only I can make.
 - `nunebot-land` merges a ready pull request once CI is green, watches the
@@ -48,6 +49,15 @@ My own skills live in `skills/`, and setup links them into both Claude Code
 - `nunebot-run` runs one Nunebot pass from `nunebot/PROMPT.md` in my brain repo,
   optionally limited to some repos or a different PR cap.
 - `simplify` is linked into Codex only, because Claude Code has it built in.
+
+So these skills can commit, push, and check deploys from Codex without asking,
+setup merges `codex/config.toml` and the `work` permission profile in
+`codex/permissions.toml` into `~/.codex/config.toml` (see `script/codex-config`).
+Codex may write anywhere in `~/github` and its current workspace, and reach
+only the hosts listed there. Writes to `~/.dotfiles` from another repo ask the
+guardian reviewer first, because setup links those files live. A command that
+needs another host fails with "domain is not on the allowlist"; add the host
+and rerun setup.
 
 Setup installs the Cloudflare and PlanetScale Claude Code plugins, which bring
 their hosted MCP servers, and adds the same Cloudflare and PlanetScale MCP

@@ -7,7 +7,7 @@ description: Merge a ready pull request once CI is green, watch it deploy, check
 
 Take a pull request from open to merged, deployed, and checked in production. Arguments can name one or more PRs by number or URL. Without one, use the current branch's PR. With several, land them one at a time in the order given.
 
-Naming this skill is my OK to merge and deploy. It is not my OK to roll back, run data migrations or backfills, change feature flags, or touch production data. Ask for those.
+Naming this skill is my OK to merge and deploy. It is not my OK to roll back, run data migrations or backfills, change feature flags, or touch production data. Ask for those. Never release a gem or package, push a version tag, or bump a version.
 
 ## 1. Check it's ready
 
@@ -31,7 +31,7 @@ Find how this repo deploys in the Deploys paragraph of brain's Nunebot prompt (`
 - **GitHub Actions deploy:** find the run for the merge commit and `gh run watch` it.
 - **Cloudflare Workers Builds:** watch the production `Workers Builds` check on the merge commit.
 - **Manual (`fly deploy`, `kamal deploy`):** run the repo's deploy command from a worktree at the merge commit.
-- **Gems and libraries:** there's no deploy. Stop after the merge and say whether a release looks due. Releasing is a separate ask.
+- **Gems and libraries:** there's no deploy. Stop after the merge.
 
 If the deploy fails, stop and report the failing step and its output.
 
@@ -53,11 +53,11 @@ If something regressed, show the evidence, give the exact rollback command, and 
 
 ## 6. Report
 
-```
-Landed: <PR link>, <merge method>
-Deployed: <release or run link, or "no deploy">
-Production: <what you checked and what you saw>
-John: <steps left for me, or "nothing">
-```
+Use this Markdown list, not a code block:
+
+- **Landed:** the PR link and merge method.
+- **Deployed:** the release or run link, or "no deploy".
+- **Production:** what you checked and what you saw.
+- **John:** steps left for me, or "nothing".
 
 Then say whether this session is safe to archive.

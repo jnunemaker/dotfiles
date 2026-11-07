@@ -1,0 +1,101 @@
+#!/bin/sh
+# Print ~/.codex/config.toml (or the file given) merged with my Codex settings:
+#
+# - Top-level keys from codex/config.toml, placed before the first table.
+# - network_proxy = true under [features], which Codex needs to enforce the
+#   domain allowlist.
+# - codex/permissions.toml in a managed block at the end.
+# - No sandbox_mode or [sandbox_workspace_write], because Codex ignores
+#   default_permissions while either is set.
+#
+# Running it again on its own output changes nothing.
+
+set -e
+
+dotfiles=$(cd "$(dirname "$0")/.." && pwd)
+target=${1:-$HOME/.codex/config.toml}
+
+awk -v settings_file="$dotfiles/codex/config.toml" -v block_file="$dotfiles/codex/permissions.toml" '
+  function key_of(line) {
+    sub(/^[[:space:]]+/, "", line)
+    sub(/[[:space:]]*=.*/, "", line)
+    return line
+  }
+
+  function table_of(line) {
+    sub(/^[[:space:]]+/, "", line)
+    sub(/\][[:space:]]*(#.*)?$/, "]", line)
+    gsub(/[[:space:]]/, "", line)
+    return line
+  }
+
+  function emit(line) {
+    print line
+    last = line
+  }
+
+  function emit_missing_settings(   i) {
+    for (i = 1; i <= count; i++) {
+      if (!(order[i] in seen)) {
+        emit(settings[order[i]])
+      }
+    }
+  }
+
+  BEGIN {
+    while ((getline line < settings_file) > 0) {
+      if (line ~ /^[A-Za-z_]+[[:space:]]*=/) {
+        key = key_of(line)
+        settings[key] = line
+        order[++count] = key
+      }
+    }
+  }
+
+  /^# BEGIN dotfiles codex permissions$/ { in_block = 1; next }
+  /^# END dotfiles codex permissions$/ { in_block = 0; next }
+  in_block { next }
+
+  /^[[:space:]]*\[/ {
+    if (table == "") {
+      emit_missing_settings()
+      if (last != "") emit("")
+    }
+    table = table_of($0)
+    if (table == "[sandbox_workspace_write]") next
+    emit($0)
+    if (table == "[features]") {
+      emit("network_proxy = true")
+      has_features = 1
+    }
+    next
+  }
+
+  table == "[sandbox_workspace_write]" { next }
+  table == "" && /^[[:space:]]*sandbox_mode[[:space:]]*=/ { next }
+  table == "[features]" && /^[[:space:]]*network_proxy[[:space:]]*=/ { next }
+
+  table == "" && /^[[:space:]]*[A-Za-z_]+[[:space:]]*=/ {
+    key = key_of($0)
+    if (key in settings) {
+      emit(settings[key])
+      seen[key] = 1
+      next
+    }
+  }
+
+  { emit($0) }
+
+  END {
+    if (table == "") emit_missing_settings()
+    if (!has_features) {
+      if (last != "") emit("")
+      emit("[features]")
+      emit("network_proxy = true")
+    }
+    if (last != "") emit("")
+    emit("# BEGIN dotfiles codex permissions")
+    while ((getline line < block_file) > 0) emit(line)
+    emit("# END dotfiles codex permissions")
+  }
+' "$target"

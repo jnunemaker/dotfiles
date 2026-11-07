@@ -7,11 +7,11 @@ description: Run my full review loop on the current branch (simplify, QA, cross-
 
 Take the change on the current branch from written to proven, and leave a ledger for `nunebot-pr`.
 
-This is a checklist. A nested skill returning does not end your turn: when one finishes, even with its own report or status block, go straight to the next step. You are done only after step 8.
+This is a checklist. A nested skill returning does not end your turn: when one finishes, even with its own report or status block, go straight to the next step. You are done only after step 9.
 
 If the arguments include `unattended`, nobody is watching. When a skill stops to ask a question, take its recommended option and record the choice in the ledger. Otherwise ask me.
 
-Never run `git stash` (it's shared across worktrees), and never touch the default branch. The repo's `AGENTS.md` or `CLAUDE.md` wins over anything here, such as a rule not to run the full suite locally.
+Never run `git stash` (it's shared across worktrees), and never touch the default branch. The repo's `AGENTS.md` or `CLAUDE.md` wins over anything here.
 
 ## 1. Set up
 
@@ -19,7 +19,7 @@ Never run `git stash` (it's shared across worktrees), and never touch the defaul
 - If you're on the default branch, create `nunes/<short-description>` first.
 - Commit any uncommitted work that belongs to the change.
 - If there's no diff against the base, report that and stop.
-- Start the ledger fresh at `$(git rev-parse --git-dir)/nunebot-review.md`. Update it after every step, so it survives a compacted context. It stays out of the commit because it lives in the git directory.
+- Start the ledger fresh at `.nunebot/review.md` in the worktree root. If `.nunebot/` is new, put a `.gitignore` containing `*` in it, so the folder never gets committed. Update the ledger after every step, so it survives a compacted context.
 
 ## 2. Simplify
 
@@ -34,7 +34,9 @@ Use the `qa` skill to actually use the thing and fix what's really broken. Commi
 The other model reviews, so the author never grades its own work.
 
 - **In Claude Code:** the `codex` skill, as `/codex review`.
-- **In Codex:** the `claude-code` skill, as `/claude-code review`.
+- **In Codex:** the `claude-code` skill, as `$claude-code review`.
+
+In Codex, run every Claude Code call with `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` set. Codex's sandbox only lets Claude reach Anthropic, and a blocked telemetry request fails the whole call.
 
 Decide on each finding: fix it if it's legitimate, reject it with a reason if it isn't. If nothing is legitimate, go to step 6.
 
@@ -45,10 +47,10 @@ Do at most 3 rounds of:
 1. Commit the fixes as one commit and note its SHA.
 2. Have the other model review only that commit, never the whole change again.
    - **In Claude Code:** `codex review --commit <sha>`.
-   - **In Codex:** not `/claude-code review`, which always sends the whole branch. Write a temporary prompt file outside the repo asking for a review of this diff only, with findings labelled `[P1]`, `[P2]`, `[P3]` or `NO_FINDINGS`, followed by the output of `git show <sha>`. Then run `~/.codex/skills/gstack/bin/gstack-claude-code --user-invoked --cwd "$(git rev-parse --show-toplevel)" --access none --timeout-ms 600000 < <prompt-file>` and read `result` from the JSON it prints. If it fails, the review didn't happen, so the status is `BLOCKED`.
+   - **In Codex:** not `$claude-code review`, which always sends the whole branch. Write a temporary prompt file outside the repo asking for a review of this diff only, with findings labelled `[P1]`, `[P2]`, `[P3]` or `NO_FINDINGS`, followed by the output of `git show <sha>`. Then run `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ~/.codex/skills/gstack/bin/gstack-claude-code --user-invoked --cwd "$(git rev-parse --show-toplevel)" --access none --timeout-ms 600000 < <prompt-file>` and read `result` from the JSON it prints. If it fails, the review didn't happen, so the status is `BLOCKED`.
 3. Decide on each finding as in step 4. If nothing is legitimate, go to step 6.
 
-If the third review still has legitimate findings, stop. Commit nothing else, record the open findings, and go to step 8 with status `GAVE_UP`. Chasing zero findings is how small changes turn into 3,000 line PRs.
+If the third review still has legitimate findings, stop. Commit nothing else, record the open findings, and go to step 9 with status `GAVE_UP`. Chasing zero findings is how small changes turn into 3,000 line PRs.
 
 ## 6. Performance and compatibility
 
@@ -57,14 +59,23 @@ Answer both from the final code, for someone who hasn't read it:
 - **Performance:** what does this cost at runtime (queries, requests, hot paths, memory, job load)? Give before and after numbers for any claim that something got faster or cheaper. "No runtime impact" is a fine answer when it's true.
 - **Compatibility:** is it mostly additive, checking more without breaking anything existing and legitimate? Name who or what could break, including stored data and API callers.
 
-## 7. Prove it
+## 7. Security
+
+Review the branch's diff for security problems: auth and permission checks, injection, secrets, unsafe input handling, and data exposure.
+
+- **In Claude Code:** the `security-review` skill.
+- **In Codex:** the `security-audit` skill, asked for a focused review of `git diff origin/<base>...HEAD` only, not a full audit.
+
+Decide on each finding as in step 4. A fix gets its own commit and a review as in step 5, using any rounds left. If none are left, the status is `GAVE_UP`. "No security findings" is a fine answer when it's true.
+
+## 8. Prove it
 
 On the final branch, gather every one of these that applies. Keep the actual output, not a description of it.
 
 - **Failing, then passing:** a test that fails on the base branch and passes here, with both outputs.
-- **Green suite:** the full suite and linters. If the repo forbids running the suite locally, run the affected tests and say CI will cover the rest.
+- **Focused tests:** run the tests for what changed and for what the change could break, such as its callers, shared code it touches, and the views or jobs that use it. Lint the changed files. Don't run the full suite locally; CI runs it, so say CI covers the rest.
 - **Seen running:** run the app and exercise the change. For a gem or library, a script or console session.
-- **Screenshots, when a person would see the change:** views, CSS, copy, emails, and new UI states, including transient ones like loading. A before and after pair at the same viewport, cropped to the change, about 4 images at most. Save them to `$(git rev-parse --git-dir)/nunebot-proof/` and never commit them. Skip them where another proof is stronger: text diffs for machine-readable output, curl output for status codes and auth, a byte-identical render diff for refactors, a terminal transcript for CLI and backend work.
+- **Screenshots, when a person would see the change:** views, CSS, copy, emails, and new UI states, including transient ones like loading. A before and after pair at the same viewport, cropped to the change, about 4 images at most. Save them to `.nunebot/proof/` and never commit them. Skip them where another proof is stronger: text diffs for machine-readable output, curl output for status codes and auth, a byte-identical render diff for refactors, a terminal transcript for CLI and backend work.
 - **Proven unused:** for removals, the searches and signals showing nothing references the code, plus the line count removed.
 - **Measured:** before and after numbers for anything claiming to improve speed, cost, errors, or query load.
 
@@ -72,7 +83,7 @@ A fix made while proving gets its own commit and a review as in step 5, using an
 
 If you can't produce the proof, fix the change until you can. If that's not possible, the status is `BLOCKED`, with what you tried and everything you did prove.
 
-## 8. Finish the ledger and report
+## 9. Finish the ledger and report
 
 Write the ledger in this shape, leaving out anything that doesn't apply:
 
@@ -92,6 +103,9 @@ What it tested and found.
 Each round: what was reviewed, findings fixed, findings rejected and why.
 
 ## Performance & compatibility
+
+## Security
+What the security review checked and found.
 
 ## Proof
 The actual outputs and tables.

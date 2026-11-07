@@ -610,29 +610,20 @@ if [ -f "$HOME/.tool-versions" ] && [ ! -L "$HOME/.tool-versions" ]; then
   move_to_backup "$HOME/.tool-versions" "tool-versions"
 fi
 
-codex_config_source="$PWD/codex/config.toml"
+# Merge my Codex settings and permissions into ~/.codex/config.toml, keeping
+# everything else in it. See script/codex-config.
 codex_config_target="$HOME/.codex/config.toml"
-codex_fallback_setting=$(cat "$codex_config_source")
+codex_config_temp=$(mktemp)
 touch "$codex_config_target"
+"$PWD/script/codex-config" "$codex_config_target" > "$codex_config_temp"
 
-if ! grep -q '^project_doc_fallback_filenames[[:space:]]*=' "$codex_config_target"; then
+if cmp -s "$codex_config_temp" "$codex_config_target"; then
+  rm -f "$codex_config_temp"
+else
   mkdir -p "$backup"
   cp "$codex_config_target" "$backup/codex-config.toml"
-  codex_config_temp=$(mktemp)
-  awk -v setting="$codex_fallback_setting" '
-    !inserted && /^\[/ {
-      print setting
-      print ""
-      inserted = 1
-    }
-    { print }
-    END {
-      if (!inserted) {
-        print setting
-      }
-    }
-  ' "$codex_config_target" > "$codex_config_temp"
   mv "$codex_config_temp" "$codex_config_target"
+  chmod 600 "$codex_config_target"
 fi
 
 quietly "Installing global tools with mise" "$HOME/.local/bin/mise" install

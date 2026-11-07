@@ -1,0 +1,71 @@
+# Codex's default permissions, so skills like nunebot-review and nunebot-land
+# can commit, push, and check deploys without asking. Setup copies this into
+# ~/.codex/config.toml and points default_permissions at it.
+#
+# Writes: my repos and the current workspace. Not ~/.dotfiles: setup links those
+# files live (shell rc, AGENTS.md, skills), so a write there from another repo
+# goes through an escalation the guardian reviewer (approvals_reviewer) checks.
+# Codex also keeps the current worktree's own git folder read-only, so commits
+# there escalate the same way.
+#
+# Network: only the hosts below. A run that needs another host fails with
+# "domain is not on the allowlist"; add the host here and rerun setup.
+
+[permissions.work]
+description = "Write ~/github, reach only allowlisted hosts."
+extends = ":workspace"
+
+[permissions.work.workspace_roots]
+"~/github" = true
+
+[permissions.work.filesystem]
+"~/github/**" = "write"
+
+[permissions.work.network]
+enabled = true
+
+[permissions.work.network.domains]
+# GitHub: gh, git push and fetch, raw files, release assets
+"github.com" = "allow"
+"**.github.com" = "allow"
+"**.githubusercontent.com" = "allow"
+# Claude Code, so Claude can review Codex's work
+"**.anthropic.com" = "allow"
+"claude.ai" = "allow"
+"**.claude.ai" = "allow"
+"**.claude.com" = "allow"
+# Deploys and production metadata
+"**.heroku.com" = "allow"
+"**.fly.io" = "allow"
+"**.fly.dev" = "allow"
+"api.cloudflare.com" = "allow"
+"**.planetscale.com" = "allow"
+"**.psdb.cloud" = "allow"
+"**.honeybadger.io" = "allow"
+# MCP servers setup adds to Codex
+"mcp.cloudflare.com" = "allow"
+"mcp.pscale.dev" = "allow"
+"mcp.helpscout.net" = "allow"
+"mcp.letsjelly.com" = "allow"
+"api.crisp.chat" = "allow"
+"api.ahrefs.com" = "allow"
+# Packages
+"rubygems.org" = "allow"
+"**.rubygems.org" = "allow"
+"registry.npmjs.org" = "allow"
+"registry.yarnpkg.com" = "allow"
+"proxy.golang.org" = "allow"
+"sum.golang.org" = "allow"
+# My apps, for read-only production checks
+"**.boxoutsports.com" = "allow"
+"**.flippercloud.io" = "allow"
+"**.fireside.fm" = "allow"
+"**.flare.am" = "allow"
+"**.speakerdeck.com" = "allow"
+"**.pitchin.now" = "allow"
+"**.preachindex.com" = "allow"
+"**.southbendwatch.co" = "allow"
+"**.barnbasketball.com" = "allow"
+"**.archive.watch" = "allow"
+"**.thewatcharchive.com" = "allow"
+"**.johnnunemaker.com" = "allow"

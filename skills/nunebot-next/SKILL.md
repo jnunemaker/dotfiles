@@ -5,7 +5,7 @@ description: Tell me the single next step for the work in this session and any d
 
 # nunebot-next
 
-I'm asking "what's next?" Arguments, if any, narrow what I'm asking about, such as `/nunebot-next rollout`.
+I'm asking "what's next?" Arguments, if any, narrow what I'm asking about, such as `rollout`.
 
 Don't change anything while answering: no commits, pushes, merges, deploys, or edits. Reading is fine.
 
@@ -22,7 +22,11 @@ If this conversation has no work in it yet, look at my open PRs in this repo (`g
 
 ## 2. Pick the one next step
 
-My usual path is: build, `/nunebot-review`, `/nunebot-pr`, CI and review, `/nunebot-land`, roll out any flag. Find the first thing on that path that isn't done, or the next step of whatever else we're doing, like a manual setup I'm walking through. When everything's done, the next step is archiving this session.
+My usual path is: build, `nunebot-review`, `nunebot-pr`, CI and review, `nunebot-land`, roll out any flag. Find the first thing on that path that isn't done, or the next step of whatever else we're doing, like a manual setup I'm walking through. When everything's done, the next step is archiving this session.
+
+When the next step is merging, check it's really ready: mergeable, CI green, no unresolved review threads, no unchecked `## John: before merge` items, every commit reviewed or named as unreviewed, and a PR body that covers every commit. An out-of-date body is a blocker, fixed by rerunning `/nunebot-pr`.
+
+If a review ran and only later commits weren't reviewed, the next step is reviewing just those commits (`codex review --commit <sha>` in Claude Code, or the `nunebot-review` step 5 prompt in Codex), not a full `/nunebot-review`. Suggest the full review only when those commits change behavior that no earlier review covered.
 
 ## 3. Find my decisions
 
@@ -30,13 +34,23 @@ Only list decisions that block the next step or change it, and only ones you can
 
 ## 4. Answer
 
-Use this shape and nothing else:
+Answer with a Markdown list in this order, and nothing else. Never use a code block.
 
-```
-Where: <one line on where things stand>
-Reviewed: <which review steps ran on the latest commit, and which didn't>
-Next: <the one step, who does it, and the exact command, link, or click>
-Decide: <each blocking decision with your pick, or "nothing">
-```
+- **Next:** the one step and who does it, then the exact command, link, or click in backticks.
+- **Decide:** "nothing", or one numbered sub-bullet per decision, each ending with **Pick:** and your choice.
+- **Status:** facts as short fragments joined with ` · `, such as the PR link, mergeable, CI, pushed.
+- **Merge:** only when the next step is merging. ✅ ready, or ❌ with each blocker as a fragment.
+- **Reviewed:** each review step as ✅ or ❌ with its name, joined with ` · `, then ❌ and the short SHA and subject of each commit made after the last review.
 
-Leave out `Reviewed` when there's no branch. Keep each line short, with no later steps or recap. If I ask "then what?", give me the step after that the same way. If the next step is yours, end by asking whether to do it.
+Write fragments, not sentences, and keep every line under about 12 words, so I can scan it in two seconds. Put any detail I need in a sub-bullet instead of a longer line. Link a PR as `owner/repo#123` and leave out its title. No later steps or recap.
+
+For example:
+
+- **Next:** I run `/nunebot-review` on this branch
+- **Decide:**
+  1. Full review of all 147 files before landing? **Pick:** yes, most were never cross-reviewed
+- **Merge:** ❌ 2 commits unreviewed · PR body misses the test harness fix
+- **Status:** boxoutsports/boxoutsports#5783 · mergeable · CI green · pushed
+- **Reviewed:** ✅ Codex · ❌ nunebot-review · ❌ `a1b2c3d` Fix doc typo · ❌ `d4e5f6a` Fix test harness
+
+Name a skill as `/name` in Claude Code and `$name` in Codex. Leave out `Reviewed` when there's no branch. If I ask "then what?", give me the step after that the same way. If the next step is yours, end with one short question asking whether to do it.
