@@ -685,8 +685,15 @@ fi
 # Run setup on my other Macs too: the online macOS devices on my tailnet that
 # belong to my Tailscale user. Pull their dotfiles first, then run setup there
 # without a terminal, so steps that need me print a note instead of waiting.
-# DOTFILES_SETUP_REMOTE stops that run from calling back here.
-if [ -z "$DOTFILES_SETUP_REMOTE" ]; then
+# DOTFILES_SETUP_REMOTE stops that run from calling back here. Only do this
+# from ~/.dotfiles on a pushed main, since the other Macs pull main.
+if [ -n "$DOTFILES_SETUP_REMOTE" ]; then
+  :
+elif ! [ "$PWD" -ef "$HOME/.dotfiles" ] ||
+  [ "$(git branch --show-current)" != "main" ] ||
+  [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main 2>/dev/null)" ]; then
+  echo "Skipping setup on other Macs: this isn't ~/.dotfiles on main matching origin/main. Pull or push, then rerun from there."
+else
   tailscale_cli=$(command -v tailscale || true)
   [ -z "$tailscale_cli" ] && [ -x /Applications/Tailscale.app/Contents/MacOS/Tailscale ] &&
     tailscale_cli=/Applications/Tailscale.app/Contents/MacOS/Tailscale

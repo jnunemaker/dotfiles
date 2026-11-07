@@ -14,8 +14,9 @@ Help Scout sign-ins and the one-time Jelly, Fireside, and Ahrefs token prompts,
 show their output as they run. If setup replaces existing files, it says where it
 moved them.
 
-At the end, setup runs itself on my other Macs: the online macOS devices on my
-Tailscale network that belong to my Tailscale user. On each it pulls
+At the end, when run from `~/.dotfiles` on `main` matching `origin/main`, setup
+runs itself on my other Macs: the online macOS devices on my Tailscale network
+that belong to my Tailscale user. On each it pulls
 `~/.dotfiles` and runs setup over SSH without a terminal, so a step that needs
 me prints a note to finish it there instead of waiting. A Mac it can't SSH into
 is skipped with a note; turn on Remote Login there (System Settings → General →
