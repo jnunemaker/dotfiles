@@ -19,7 +19,7 @@ Never run `git stash` (it's shared across worktrees), and never touch the defaul
 - If you're on the default branch, create `nunes/<short-description>` first.
 - Commit any uncommitted work that belongs to the change.
 - If there's no diff against the base, report that and stop.
-- Start the ledger fresh at `$(git rev-parse --git-dir)/nunebot-review.md`. Update it after every step, so it survives a compacted context. It stays out of the commit because it lives in the git directory.
+- Start the ledger fresh at `.nunebot/review.md` in the worktree root. If `.nunebot/` is new, put a `.gitignore` containing `*` in it, so the folder never gets committed. Update the ledger after every step, so it survives a compacted context.
 
 ## 2. Simplify
 
@@ -66,7 +66,7 @@ On the final branch, gather every one of these that applies. Keep the actual out
 - **Failing, then passing:** a test that fails on the base branch and passes here, with both outputs.
 - **Green suite:** the full suite and linters. If the repo forbids running the suite locally, run the affected tests and say CI will cover the rest.
 - **Seen running:** run the app and exercise the change. For a gem or library, a script or console session.
-- **Screenshots, when a person would see the change:** views, CSS, copy, emails, and new UI states, including transient ones like loading. A before and after pair at the same viewport, cropped to the change, about 4 images at most. Save them to `$(git rev-parse --git-dir)/nunebot-proof/` and never commit them. Skip them where another proof is stronger: text diffs for machine-readable output, curl output for status codes and auth, a byte-identical render diff for refactors, a terminal transcript for CLI and backend work.
+- **Screenshots, when a person would see the change:** views, CSS, copy, emails, and new UI states, including transient ones like loading. A before and after pair at the same viewport, cropped to the change, about 4 images at most. Save them to `.nunebot/proof/` and never commit them. Skip them where another proof is stronger: text diffs for machine-readable output, curl output for status codes and auth, a byte-identical render diff for refactors, a terminal transcript for CLI and backend work.
 - **Proven unused:** for removals, the searches and signals showing nothing references the code, plus the line count removed.
 - **Measured:** before and after numbers for anything claiming to improve speed, cost, errors, or query load.
 

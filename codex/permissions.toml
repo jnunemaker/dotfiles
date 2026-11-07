@@ -2,24 +2,24 @@
 # can commit, push, and check deploys without asking. Setup copies this into
 # ~/.codex/config.toml and points default_permissions at it.
 #
-# Writes: my repos and these dotfiles. Codex still keeps the current worktree's
-# own git folder read-only, so commits there go through an escalation that the
-# guardian reviewer (approvals_reviewer) approves.
+# Writes: my repos and the current workspace. Not ~/.dotfiles: setup links those
+# files live (shell rc, AGENTS.md, skills), so a write there from another repo
+# goes through an escalation the guardian reviewer (approvals_reviewer) checks.
+# Codex also keeps the current worktree's own git folder read-only, so commits
+# there escalate the same way.
 #
 # Network: only the hosts below. A run that needs another host fails with
 # "domain is not on the allowlist"; add the host here and rerun setup.
 
 [permissions.work]
-description = "Write ~/github and ~/.dotfiles, reach only allowlisted hosts."
+description = "Write ~/github, reach only allowlisted hosts."
 extends = ":workspace"
 
 [permissions.work.workspace_roots]
 "~/github" = true
-"~/.dotfiles" = true
 
 [permissions.work.filesystem]
 "~/github/**" = "write"
-"~/.dotfiles/**" = "write"
 
 [permissions.work.network]
 enabled = true
