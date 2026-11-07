@@ -9,6 +9,13 @@ All my relevant projects are stored in ~/github. If I mention a project and you 
 - If already on a feature branch, stay on it.
 - Never switch, delete, or overwrite an existing branch without explicit instruction.
 
+## How to answer me
+- Be concise. Lead with the answer; I'll ask for more if I want it.
+- When I'm doing something by hand, give me one step at a time, not the whole list.
+- When I need to decide something, number the decisions, give the options with their tradeoffs, and say which you'd pick.
+- "ELI10" means plain words and no jargon.
+- When I ask how something works or for a diagram, show the real flow in order and where it can break. A tidy summary widget doesn't count.
+
 ## Design Guidelines
 - Try to use similar components as what already exists in the app (if there are any). Avoid new css/html unless needed and if you do, please extract to a component so it can be re-usable in other areas.
 - I care a lot about alignment and balance. If you do a horizontal form or row, things should be aligned correctly and not feel weird to the eye.
