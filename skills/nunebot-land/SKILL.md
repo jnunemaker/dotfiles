@@ -11,28 +11,26 @@ Naming this skill is my OK to merge and deploy. It is not my OK to roll back, ru
 
 ## 1. Check it's ready
 
-Run `gh pr view <pr> --json number,url,title,state,isDraft,mergeable,mergeStateStatus,reviewDecision,headRefName,headRefOid,baseRefName,body,statusCheckRollup`.
+Run `gh pr view <pr> --json number,url,state,isDraft,mergeable,reviewDecision,headRefName,headRefOid,baseRefName,body` and `gh pr checks <pr>`.
 
 - **CI still running:** wait with `gh pr checks <pr> --watch`, then continue.
 - **CI red, conflicts, draft, or changes requested:** stop and tell me what's blocking. Don't fix it here.
 - **Unresolved review threads:** stop and list them.
-- **Review:** read `$(git rev-parse --git-dir)/nunebot-review.md` if this worktree has one for this branch. If its status isn't `DONE`, or its `Head` isn't the PR's head commit, say which commits weren't reviewed and ask before merging. If there's no ledger, say so and ask.
+- **Review:** check the nunebot-review ledger the way `nunebot-pr` step 2 does. If it isn't `DONE`, or its `Head` isn't the PR's head commit, say which commits weren't reviewed and ask before merging. If there's no ledger, say so and ask.
 - **`## John: before merge`:** if the PR body has unchecked items there, show them and ask whether they're done.
 
 ## 2. Merge
 
-Check the repo's settings with `gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed,deleteBranchOnMerge` and how recent PRs were merged, and use the same method. Merge with `gh pr merge <pr> --squash` (or `--merge`/`--rebase` to match).
-
-Never pass `--delete-branch` and never check out the default branch: this may be a linked worktree, and `gh` would switch it to `main`. Delete the remote branch yourself in step 5.
+Use the merge method the repo allows (`gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed`). If it allows more than one, match how recent PRs were merged. Delete the remote branch yourself in step 5.
 
 ## 3. Watch the deploy
 
-Use the deploy map in the **Deploys** paragraph of `~/github/brain/nunebot/PROMPT.md` when it's there. Otherwise work it out from the repo (`app.json`/Heroku GitHub integration, `.github/workflows`, `fly.toml`, `config/deploy.yml` for Kamal, Workers Builds).
+Find how this repo deploys in the Deploys paragraph of brain's Nunebot prompt (`grep -m1 '^Deploys' ~/github/brain/nunebot/PROMPT.md`) and follow its repo rules. If it doesn't cover this repo, work it out from the repo (`app.json` or the Heroku GitHub integration, `.github/workflows`, `fly.toml`, Kamal's `config/deploy.yml`, Workers Builds).
 
-- **Heroku auto-deploy:** poll `heroku releases --app <app> -n 3` until a release for the merge commit appears, then wait for preboot (about 3 minutes) before checking. Never run `heroku config` or `heroku releases:info`.
+- **Heroku auto-deploy:** wait in one blocking command until a release for the merge commit appears, then wait out preboot (about 3 minutes), for example `until heroku releases --app <app> -n 3 | grep -q <short-sha>; do sleep 30; done; sleep 180`.
 - **GitHub Actions deploy:** find the run for the merge commit and `gh run watch` it.
-- **Cloudflare Workers Builds:** watch the production `Workers Builds` check on the merge commit. Never run `wrangler deploy` or `script/deploy` there.
-- **Manual (`fly deploy`, `kamal deploy`):** run the repo's deploy command from a clean checkout of the merge commit, in a worktree, never in my main checkout.
+- **Cloudflare Workers Builds:** watch the production `Workers Builds` check on the merge commit.
+- **Manual (`fly deploy`, `kamal deploy`):** run the repo's deploy command from a worktree at the merge commit.
 - **Gems and libraries:** there's no deploy. Stop after the merge and say whether a release looks due. Releasing is a separate ask.
 
 If the deploy fails, stop and report the failing step and its output.
@@ -45,7 +43,7 @@ Pick checks that would catch this change breaking, and keep them read-only:
 - Look for new Honeybadger faults since the deploy, and compare error rate and latency in Flare with the hour before.
 - Do the checks listed under `## John: after merge/deploy` that you can, and tick them in the PR body. Leave the rest for me.
 
-If something regressed, show the evidence, give the exact rollback command, and ask. Don't roll back on your own.
+If something regressed, show the evidence, give the exact rollback command, and ask.
 
 ## 5. Clean up
 

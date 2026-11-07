@@ -3,6 +3,7 @@ All my relevant projects are stored in ~/github. If I mention a project and you 
 ## For mutating coding tasks:
 - Keep the primary `~/github/<project>` checkout on `main`/`master`. Do not switch or detach that checkout for Codex work, even temporarily. Do branch work in a linked worktree.
 - Never check out `main`/`master` in a linked worktree, including for merges, pulls, or cleanup. Create linked worktrees detached from the default branch or on a feature branch.
+- Never run `gh pr merge --delete-branch` from a linked worktree, because it checks out the default branch there. Delete the remote branch with `git push origin --delete <branch>` instead.
 - Check the current Git branch before editing. In a linked worktree, if detached, create a feature branch first.
 - Follow the repository’s naming convention; otherwise use codex/<short-task-slug>.
 - Do not create a branch for read-only reviews, investigations, or status checks.
@@ -13,6 +14,7 @@ All my relevant projects are stored in ~/github. If I mention a project and you 
 - Be concise. Lead with the answer; I'll ask for more if I want it.
 - When I'm doing something by hand, give me one step at a time, not the whole list.
 - When I need to decide something, number the decisions, give the options with their tradeoffs, and say which you'd pick.
+- When your tool can ask a question with buttons, use it for a decision or go-ahead.
 - "ELI10" means plain words and no jargon.
 - When I ask how something works or for a diagram, show the real flow in order and where it can break. A tidy summary widget doesn't count.
 
