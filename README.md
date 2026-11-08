@@ -49,6 +49,12 @@ Setup also clones Cloudflare's
 Codex. Ask either agent to "security audit this codebase" to run it; reports go
 to `~/security-audit-skill/<repo>/run-N`. Run `git pull` in the clone to update.
 
+Setup also clones Jason Cohen's [asb skills](https://skills.asmartbear.com)
+(positioning, ideal customer, customer interviews, pricing) to
+`~/.local/share/asb-skills`, pulls updates on each run, and links every
+`asb-*` skill into both Claude Code (`~/.claude/skills`) and Codex
+(`~/.agents/skills`).
+
 My own skills live in `skills/`, and setup links them into both Claude Code
 (`~/.claude/skills`) and Codex (`~/.agents/skills`):
 

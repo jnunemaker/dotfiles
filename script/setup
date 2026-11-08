@@ -656,6 +656,33 @@ fi
 symlink_config "$security_audit_dir/skills/security-audit" "$HOME/.claude/skills/security-audit" "claude-skills-security-audit"
 symlink_config "$security_audit_dir/skills/security-audit" "$HOME/.codex/skills/security-audit" "codex-skills-security-audit"
 
+# Install Jason Cohen's asb skills (positioning, ideal customer, customer
+# interviews) for Claude Code and Codex. Clone once, pull on later runs, and
+# link each asb-* folder in. Being offline only skips the update.
+asb_skills_dir="$HOME/.local/share/asb-skills"
+if [ ! -d "$asb_skills_dir/.git" ]; then
+  mkdir -p "$(dirname "$asb_skills_dir")"
+  quietly "Cloning the asb skills" \
+    git clone --single-branch --depth 1 https://github.com/asmartbear/asb-skills.git "$asb_skills_dir"
+elif ! git -C "$asb_skills_dir" pull --ff-only --quiet >/dev/null 2>&1 </dev/null; then
+  echo "Couldn't update the asb skills; run git pull in $asb_skills_dir later."
+fi
+
+# Remove links to asb skills that were deleted upstream.
+for skill_link in "$HOME"/.claude/skills/asb-* "$HOME"/.agents/skills/asb-*; do
+  if [ -L "$skill_link" ] && [ ! -e "$skill_link" ]; then
+    case "$(readlink "$skill_link")" in
+      "$asb_skills_dir"/*) rm "$skill_link" ;;
+    esac
+  fi
+done
+
+for skill_dir in "$asb_skills_dir"/.claude/skills/asb-*/; do
+  skill=$(basename "$skill_dir")
+  symlink_config "$asb_skills_dir/.claude/skills/$skill" "$HOME/.claude/skills/$skill" "claude-skills-$skill"
+  symlink_config "$asb_skills_dir/.claude/skills/$skill" "$HOME/.agents/skills/$skill" "agents-skills-$skill"
+done
+
 # Global tool versions live in the mise config above. A leftover asdf-style
 # ~/.tool-versions would override them, so move it to the backup.
 if [ -f "$HOME/.tool-versions" ] && [ ! -L "$HOME/.tool-versions" ]; then
