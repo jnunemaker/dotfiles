@@ -49,6 +49,7 @@ enabled = true
 "mcp.letsjelly.com" = "allow"
 "api.crisp.chat" = "allow"
 "api.ahrefs.com" = "allow"
+"www.flippercloud.io" = "allow"
 # Packages
 "rubygems.org" = "allow"
 "**.rubygems.org" = "allow"

@@ -410,6 +410,9 @@ add_token_mcp crisp Crisp https://api.crisp.chat/mcp/ \
 add_token_mcp boxout "Box Out" https://boxoutsports.com/mcp \
   boxout-api-key BOXOUT_API_KEY "the boxout_... key from your profile menu → API Keys in Box Out"
 
+add_token_mcp flipper-cloud "Flipper Cloud" https://www.flippercloud.io/mcp \
+  flipper-cloud-api-key FLIPPER_CLOUD_API_KEY "the API key from Connect an assistant in Flipper Cloud"
+
 # Add Ahrefs' hosted MCP server to Claude Code and Codex. Claude Code signs in
 # with OAuth from /mcp on first use. Codex refuses Ahrefs' OAuth because its
 # sign-in page is on a different host than its authorization server, so Codex
