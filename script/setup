@@ -795,16 +795,17 @@ else
       echo "Skipping setup on $mac_name: can't SSH in. Turn on Remote Login there and add this Mac's SSH key to its ~/.ssh/authorized_keys."
       continue
     fi
-    printf "Setting up %s... " "$mac_name"
-    if mac_output=$(ssh -o BatchMode=yes -o ConnectTimeout=5 "$mac_ip" \
-      'zsh -lc "cd ~/.dotfiles && git pull --ff-only -q && DOTFILES_SETUP_REMOTE=1 script/setup"' \
-      </dev/null 2>&1 || exit $?); then
-      echo "done"
-      [ -z "$mac_output" ] || printf '%s\n' "$mac_output" | sed "s/^/    /"
+    # Stream that Mac's output as it runs so a long step doesn't look hung.
+    # Keepalives make a Mac that sleeps or drops off the network fail within a
+    # minute instead of waiting forever.
+    echo "Setting up $mac_name..."
+    if (set -o pipefail
+      ssh -o BatchMode=yes -o ConnectTimeout=5 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 "$mac_ip" \
+        'zsh -lc "cd ~/.dotfiles && git pull --ff-only -q && DOTFILES_SETUP_REMOTE=1 script/setup"' \
+        </dev/null 2>&1 | sed -l "s/^/    /"); then
+      echo "Done setting up $mac_name"
     else
-      echo "failed"
-      [ -z "$mac_output" ] || printf '%s\n' "$mac_output" | sed "s/^/    /"
-      echo "    Finish it there with: dotfiles setup"
+      echo "Setup failed on $mac_name. Finish it there with: dotfiles setup"
     fi
   done <<< "$other_macs"
 fi

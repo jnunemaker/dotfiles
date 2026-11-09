@@ -26,7 +26,9 @@ At the end, when run from `~/.dotfiles` on `main` matching `origin/main`, setup
 runs itself on my other Macs: the online macOS devices on my Tailscale network
 that belong to my Tailscale user. On each it pulls
 `~/.dotfiles` and runs setup over SSH without a terminal, so a step that needs
-me prints a note to finish it there instead of waiting. A Mac it can't SSH into
+me prints a note to finish it there instead of waiting. Each Mac's output
+streams in, indented, as it runs, and ends with whether it finished or failed; a
+Mac that sleeps or drops off the network fails within a minute. A Mac it can't SSH into
 is skipped with a note; turn on Remote Login there (System Settings → General →
 Sharing) and add this Mac's SSH key to its `~/.ssh/authorized_keys`.
 
