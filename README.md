@@ -95,15 +95,16 @@ account and all its projects, so there is one server per account:
 `honeybadger-verygood` (Very Good Software). Pick the matching account when each
 one signs in.
 
-The hosted Jelly (`jelly`), Fireside (`fireside`), Crisp (`crisp`), and Box Out
-(`boxout`) MCP servers have no OAuth and take an API token instead (in Jelly,
+The hosted Jelly (`jelly`), Fireside (`fireside`), Crisp (`crisp`), Box Out
+(`boxout`), and Flipper Cloud (`flipper-cloud`) MCP servers have no OAuth and take an API token instead (in Jelly,
 Settings → API Tokens; Fireside's start with `fire_`; in Crisp, Settings →
 Workspace Settings → Advanced configuration → MCP Server Token, which also
 regenerates the workspace's REST API tokens; in Box Out, the profile menu → API
-Keys, which start with `boxout_`). Setup reads each from that Mac's login Keychain
-(`jelly-api-token`, `fireside-api-token`, `crisp-mcp-token`, `boxout-api-key`),
-then from `JELLY_API_TOKEN`, `FIRESIDE_API_TOKEN`, `CRISP_MCP_TOKEN`, or
-`BOXOUT_API_KEY`, then asks when
+Keys, which start with `boxout_`; in Flipper Cloud, the key shown under Connect an
+assistant). Setup reads each from that Mac's login Keychain
+(`jelly-api-token`, `fireside-api-token`, `crisp-mcp-token`, `boxout-api-key`,
+`flipper-cloud-api-key`), then from `JELLY_API_TOKEN`, `FIRESIDE_API_TOKEN`,
+`CRISP_MCP_TOKEN`, `BOXOUT_API_KEY`, or `FLIPPER_CLOUD_API_KEY`, then asks when
 run in a terminal, and saves it to the
 Keychain. With no token it skips that server with a note instead of waiting, so
 setup never hangs on it. Setup then gives it to Claude Code and Codex as a bearer
