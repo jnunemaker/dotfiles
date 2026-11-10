@@ -26,6 +26,7 @@ All my relevant projects are stored in ~/github. If I mention a project and you 
 - Do not automatically invoke, load, or follow any skill.
 - Only use a skill when I explicitly name it in the current request.
 - The presence of an applicable installed skill is not permission to use it.
+- When you run a skill, follow its actual method, including any skill it calls (for example, `/qa` tests in a browser). If you can't, or want to deviate, ask first. Never report a substitute as the skill's step; mark a step you skipped as not done.
 
 ## Ruby Guidelines
 - Don't indent private methods different than public methods unless the file already uses this convention.
