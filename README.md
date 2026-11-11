@@ -17,8 +17,8 @@ commands in `bin/` into `~/.local/bin`.
 
 Setup is silent when everything works. If a step fails, it prints what it was
 doing and that step's full output, then stops. Only steps that need you, such as
-the Homebrew installer's password prompt or Codex's Cloudflare, Honeybadger, and
-Help Scout sign-ins and the one-time Jelly, Fireside, and Ahrefs token prompts,
+the Homebrew installer's password prompt or Codex's Cloudflare, Honeybadger, Help Scout,
+and Flare sign-ins and the one-time Jelly, Fireside, and Ahrefs token prompts,
 show their output as they run. If setup replaces existing files, it says where it
 moved them.
 
@@ -89,7 +89,7 @@ servers to Codex. It also installs the pstack Claude Code plugin from Cursor's
 marketplace, which has no Codex version, and links its per-role model choices
 from `claude/rules/pstack-models.md` into `~/.claude/rules/`. It also installs
 Matt Pocock's skills as a plugin in both Claude Code and Codex. Setup also
-adds the hosted Honeybadger and Help Scout (read-only) MCP servers to both
+adds the hosted Honeybadger, Help Scout (read-only), and Flare MCP servers to both
 Claude Code and Codex. Each signs
 in with OAuth the first time it is used. A Honeybadger sign-in grants a single
 account and all its projects, so there is one server per account:

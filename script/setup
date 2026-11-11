@@ -326,6 +326,31 @@ if ! codex mcp get helpscout &>/dev/null; then
   codex mcp add helpscout --url "$helpscout_mcp_url"
 fi
 
+# Add Flare's hosted MCP server to Claude Code and Codex. It signs in with OAuth,
+# so no API token is stored here. It replaces the local flare-cli stdio server
+# that was set up by hand before, so remove that first. As with Help Scout,
+# Codex's sign-in runs visibly.
+flare_mcp_url="https://flare.am/mcp"
+
+if plutil -extract mcpServers.flare.command raw -o - "$HOME/.claude.json" 2>/dev/null | grep -q flare-cli; then
+  quietly "Removing local Flare MCP server from Claude Code" \
+    claude mcp remove --scope user flare
+fi
+
+if codex mcp get flare 2>/dev/null | grep -q flare-cli; then
+  quietly "Removing local Flare MCP server from Codex" codex mcp remove flare
+fi
+
+if ! claude_has_mcp flare; then
+  quietly "Adding Flare MCP server to Claude Code" \
+    claude mcp add --scope user --transport http flare "$flare_mcp_url"
+fi
+
+if ! codex mcp get flare &>/dev/null; then
+  echo "Sign in to Flare for Codex's flare server"
+  codex mcp add flare --url "$flare_mcp_url"
+fi
+
 # Add a hosted MCP server that has no OAuth and takes an API token as a bearer
 # header on every request. The token lives in this Mac's login Keychain and is
 # never stored in this repo. Setup takes it from the Keychain, then from the
