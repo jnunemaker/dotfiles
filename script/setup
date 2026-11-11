@@ -562,10 +562,21 @@ symlink_config() {
   ln -s "$source" "$target"
 }
 
+# Link ssh/config in as ~/.ssh/dotfiles_config and include it from the top of
+# ~/.ssh/config, so ssh air and ssh pro work. Include has to come before any
+# Host block to apply, and the rest of ~/.ssh/config stays this Mac's own.
+symlink_config "$PWD/ssh/config" "$HOME/.ssh/dotfiles_config" "ssh-dotfiles_config"
+chmod 700 "$HOME/.ssh"
+if ! grep -qx "Include ~/.ssh/dotfiles_config" "$HOME/.ssh/config" 2>/dev/null; then
+  { echo "Include ~/.ssh/dotfiles_config"; echo; cat "$HOME/.ssh/config" 2>/dev/null; } > "$HOME/.ssh/config.dotfiles-tmp"
+  mv "$HOME/.ssh/config.dotfiles-tmp" "$HOME/.ssh/config"
+  chmod 600 "$HOME/.ssh/config"
+fi
+
 # Symlink each managed dotfile into ~/, moving anything already there aside.
 for file in *; do
   # Skip scripts and text files
-  echo $file | egrep -q '(^script$|^claude$|^codex$|^ghostty$|^preferred-mic$|^mise$|^skills$|^t3$|\.txt$|\.md|\.json$)' && continue
+  echo $file | egrep -q '(^script$|^claude$|^codex$|^ghostty$|^preferred-mic$|^mise$|^skills$|^ssh$|^t3$|\.txt$|\.md|\.json$)' && continue
 
   symlink_config "$PWD/$file" "$HOME/.$file" "$file"
 done
@@ -617,24 +628,10 @@ symlink_config "$PWD/skills/simplify" "$HOME/.agents/skills/simplify" "agents-sk
 
 # T3 Code replaces its settings and keybindings files when saving, which breaks
 # symlinks, so copy them in instead. Setup keeps a copy of what it installed, so
-# it can tell settings changed in the app from settings changed in this repo.
-# dotfiles sync offers to save app changes here first. When another Mac runs
-# this one's setup, app changes are left alone so they can be saved later.
+# dotfiles sync can tell settings changed in the app from settings changed in
+# this repo and offer to save app changes here first.
 t3_installed_dir="$HOME/.local/state/dotfiles/t3"
 mkdir -p "$t3_installed_dir"
-
-# True when the app's file matches a version of it ever committed here, meaning
-# setup put it there. Used before setup has kept a copy of what it installed.
-t3_matches_history() {
-  local file="$1" name="$2" commit app
-  app=$(jq -S . "$file" 2>/dev/null) || return 1
-  for commit in $(git log --format=%H -- "t3/$name.json"); do
-    if [ "$app" = "$(git show "$commit:t3/$name.json" 2>/dev/null | jq -S . 2>/dev/null)" ]; then
-      return 0
-    fi
-  done
-  return 1
-}
 
 for t3_settings in settings client-settings keybindings; do
   t3_source="$PWD/t3/$t3_settings.json"
@@ -644,21 +641,6 @@ for t3_settings in settings client-settings keybindings; do
   if [ -f "$t3_target" ] && [ ! -L "$t3_target" ] &&
     [ "$(jq -S . "$t3_source")" = "$(jq -S . "$t3_target" 2>/dev/null)" ]; then
     cp "$t3_source" "$t3_installed"
-    continue
-  fi
-
-  # Changed in the app since setup last installed it (or never installed by setup).
-  t3_app_changed=""
-  if [ -f "$t3_target" ] && [ ! -L "$t3_target" ]; then
-    if [ -f "$t3_installed" ]; then
-      [ "$(jq -S . "$t3_target" 2>/dev/null)" != "$(jq -S . "$t3_installed")" ] && t3_app_changed=1
-    elif ! t3_matches_history "$t3_target" "$t3_settings"; then
-      t3_app_changed=1
-    fi
-  fi
-
-  if [ -n "$DOTFILES_SETUP_REMOTE" ] && [ -n "$t3_app_changed" ]; then
-    echo "Leaving T3 Code's $t3_settings.json alone: it changed on this Mac. Run dotfiles sync here to save it."
     continue
   fi
 
@@ -787,52 +769,6 @@ fi
 if [ ! -d ~/.keyboard ]; then
   quietly "Cloning keyboard" git clone https://github.com/jasonrudolph/keyboard.git ~/.keyboard
   quietly_sh "Setting up keyboard" "cd ~/.keyboard && script/setup"
-fi
-
-# Run setup on my other Macs too: the online macOS devices on my tailnet that
-# belong to my Tailscale user. Pull their dotfiles first, then run setup there
-# without a terminal, so steps that need me print a note instead of waiting.
-# DOTFILES_SETUP_REMOTE stops that run from calling back here. Only do this
-# from ~/.dotfiles on a pushed main, since the other Macs pull main.
-if [ -n "$DOTFILES_SETUP_REMOTE" ]; then
-  :
-elif ! [ "$PWD" -ef "$HOME/.dotfiles" ] ||
-  [ "$(git branch --show-current)" != "main" ] ||
-  [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main 2>/dev/null)" ]; then
-  echo "Skipping setup on other Macs: this isn't ~/.dotfiles on main matching origin/main. Pull or push, then rerun from there."
-else
-  tailscale_cli=$(command -v tailscale || true)
-  [ -z "$tailscale_cli" ] && [ -x /Applications/Tailscale.app/Contents/MacOS/Tailscale ] &&
-    tailscale_cli=/Applications/Tailscale.app/Contents/MacOS/Tailscale
-
-  other_macs=""
-  if [ -n "$tailscale_cli" ] && command -v jq &>/dev/null; then
-    other_macs=$("$tailscale_cli" status --json 2>/dev/null | jq -r '
-      .Self.UserID as $me
-      | .Peer[]?
-      | select(.UserID == $me and .OS == "macOS" and .Online)
-      | "\(.TailscaleIPs[0])\t\(.HostName)"' 2>/dev/null || true)
-  fi
-
-  while IFS=$'\t' read -r mac_ip mac_name; do
-    [ -z "$mac_ip" ] && continue
-    if ! ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new "$mac_ip" true </dev/null &>/dev/null; then
-      echo "Skipping setup on $mac_name: can't SSH in. Turn on Remote Login there and add this Mac's SSH key to its ~/.ssh/authorized_keys."
-      continue
-    fi
-    # Stream that Mac's output as it runs so a long step doesn't look hung.
-    # Keepalives make a Mac that sleeps or drops off the network fail within a
-    # minute instead of waiting forever.
-    echo "Setting up $mac_name..."
-    if (set -o pipefail
-      ssh -o BatchMode=yes -o ConnectTimeout=5 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 "$mac_ip" \
-        'zsh -lc "cd ~/.dotfiles && git pull --ff-only -q && DOTFILES_SETUP_REMOTE=1 script/setup"' \
-        </dev/null 2>&1 | sed -l "s/^/    /"); then
-      echo "Done setting up $mac_name"
-    else
-      echo "Setup failed on $mac_name. Finish it there with: dotfiles setup"
-    fi
-  done <<< "$other_macs"
 fi
 
 # Files that were replaced are worth knowing about every time it happens.

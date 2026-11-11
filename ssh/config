@@ -1,0 +1,8 @@
+# My Macs by their Tailscale MagicDNS names: ssh air, ssh pro.
+Host air
+  HostName johns-macbook-air
+  User johnnunemaker
+
+Host pro
+  HostName johns-macbook-pro-2
+  User johnnunemaker

@@ -11,7 +11,7 @@ After that, run `dotfiles` from any directory. Setup links it and the other
 commands in `bin/` into `~/.local/bin`.
 
 - `dotfiles sync` offers to save changed T3 Code settings, pulls `~/.dotfiles`,
-  then runs setup here and on my other Macs.
+  then runs setup on this Mac. Run it on each Mac.
 - `dotfiles setup` runs setup without pulling, such as after a local edit.
 - `dotfiles help` lists the commands.
 
@@ -22,15 +22,10 @@ and Flare sign-ins and the one-time Jelly, Fireside, and Ahrefs token prompts,
 show their output as they run. If setup replaces existing files, it says where it
 moved them.
 
-At the end, when run from `~/.dotfiles` on `main` matching `origin/main`, setup
-runs itself on my other Macs: the online macOS devices on my Tailscale network
-that belong to my Tailscale user. On each it pulls
-`~/.dotfiles` and runs setup over SSH without a terminal, so a step that needs
-me prints a note to finish it there instead of waiting. Each Mac's output
-streams in, indented, as it runs, and ends with whether it finished or failed; a
-Mac that sleeps or drops off the network fails within a minute. A Mac it can't SSH into
-is skipped with a note; turn on Remote Login there (System Settings → General →
-Sharing) and add this Mac's SSH key to its `~/.ssh/authorized_keys`.
+Setup also adds `air` and `pro` SSH hosts for my two Macs, by their Tailscale
+names, so `ssh air` and `ssh pro` work. They live in `ssh/config`, which setup
+links to `~/.ssh/dotfiles_config` and includes from the top of `~/.ssh/config`,
+leaving the rest of that file alone.
 
 Setup installs Bun, Claude Code, Codex, and the T3 Code CLI (`t3`) with their
 official user-local installers when they are missing. It then installs Homebrew when needed,
@@ -142,8 +137,7 @@ menu when it is open. T3 Code replaces these files when it saves, so setup
 copies them into `~/.t3/userdata/` rather than linking them, backing up any that
 differ. When the app's settings changed since setup installed them,
 `dotfiles sync` offers to save them here (after a gitleaks scan, since this repo
-is public) and push them before setting up. When the other Mac runs setup over
-SSH, it leaves changed settings alone and says to run `dotfiles sync` there.
+is public) and push them before setting up.
 Sign-ins, secrets, and threads stay on each Mac.
 
 Git and the external tools referenced by `.gitconfig` are managed by the

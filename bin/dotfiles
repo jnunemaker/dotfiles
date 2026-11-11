@@ -12,7 +12,7 @@ Usage: dotfiles <command>
 
 Commands:
   sync    Offer to save changed T3 Code settings, pull ~/.dotfiles, then run
-          setup here and on my other Macs.
+          setup on this Mac.
   setup   Run setup without pulling, such as after a local edit.
   help    Show this help.
 EOF
