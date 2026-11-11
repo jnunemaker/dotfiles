@@ -89,14 +89,3 @@ crede() {
     bin/rails credentials:edit
   fi
 }
-
-# screen air / screen pro: screen share with my other Mac over Tailscale, by its
-# MagicDNS name (the same hosts as ssh air and ssh pro). Anything else runs GNU
-# screen as usual.
-screen() {
-  case "$#:$1" in
-    1:air) open vnc://johns-macbook-air ;;
-    1:pro) open vnc://johns-macbook-pro-2 ;;
-    *) command screen "$@" ;;
-  esac
-}

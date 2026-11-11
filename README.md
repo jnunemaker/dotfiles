@@ -25,10 +25,7 @@ moved them.
 Setup also adds `air` and `pro` SSH hosts for my two Macs, by their Tailscale
 names, so `ssh air` and `ssh pro` work. They live in `ssh/config`, which setup
 links to `~/.ssh/dotfiles_config` and includes from the top of `~/.ssh/config`,
-leaving the rest of that file alone. `screen air` and `screen pro` open Screen
-Sharing to those Macs over Tailscale; turn on Screen Sharing in System Settings
-→ General → Sharing on the Mac you connect to. Other `screen` commands run GNU
-screen as usual.
+leaving the rest of that file alone.
 
 Setup installs Bun, Claude Code, Codex, and the T3 Code CLI (`t3`) with their
 official user-local installers when they are missing. It then installs Homebrew when needed,
