@@ -47,6 +47,7 @@ Write it to a temporary file outside the repo, using these sections in this orde
 The problem, with a link to its evidence.
 
 ## What changed
+**Size:** code +120 −30 · tests +366 · docs +14
 
 ## Proof
 Failing then passing output, focused test results, seen running, numbers. Show the real output.
@@ -59,6 +60,8 @@ What /simplify trimmed, what /qa found, what the security review found, and each
 
 ## Risk and rollback
 ```
+
+Start What changed with the line printed by `<this skill's directory>/line-counts origin/<base>`, as is. It counts lines added and removed against the base, by kind: code, tests, docs, migrations, config & tooling (CI, scripts, Gemfile, YAML), generated (lockfiles, schema dumps, vendored or minified files) and assets (files only). Run it again after every push, so it matches the final diff. If a file lands in the wrong kind, `--files` shows how each was counted; fix the patterns in the script rather than editing the line by hand.
 
 The John sections are only for changes you can't make yourself and production checks. If you can do it, do it instead of listing it. If an app doesn't deploy on merge, list the deploy step under `John: after merge/deploy`. Gem releases, Go tags and `workspace update` can happen later, so they aren't John steps: leave them out of the John sections.
 

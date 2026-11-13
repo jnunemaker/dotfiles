@@ -1,0 +1,96 @@
+#!/usr/bin/env ruby
+# Counts a branch's changed lines by kind, for the Size line of a PR body.
+#
+#   line-counts origin/main          # **Size:** code +120 −30 · tests +366 · …
+#   line-counts origin/main --files  # also lists each file and its kind
+#   line-counts abc123^ abc123       # one commit
+#
+# Compares <base>...<head> (HEAD by default), so a merge of the base into the branch adds nothing.
+
+KINDS = {
+  "code" => "code",
+  "tests" => "tests",
+  "docs" => "docs",
+  "migrations" => "migrations",
+  "config" => "config & tooling",
+  "generated" => "generated",
+  "assets" => "assets",
+}.freeze
+
+GENERATED = %r{
+  (\A|/)(Gemfile\.lock|yarn\.lock|package-lock\.json|pnpm-lock\.yaml|bun\.lockb?|go\.sum|Cargo\.lock|poetry\.lock|composer\.lock)\z |
+  (\A|/)db/([a-z_]+_)?(schema\.rb|structure\.sql)\z |
+  (\A|/)(vendor|node_modules|\.yarn)/ | (\A|/)\.pnp\.[a-z]+\z |
+  \.min\.(js|css)\z | \.map\z | \.snap\z
+}x
+MIGRATIONS = %r{(\A|/)db/([a-z_]+_)?migrate/|(\A|/)migrations?/}
+TESTS = %r{
+  (\A|/)(spec|specs|test|tests|__tests__|__mocks__|e2e|features)/ |
+  (_spec|_test|\.test|\.spec)\.[a-z]+\z | (\A|/)test_[^/]+\.py\z
+}x
+DOCS = %r{\.(md|mdx|markdown|rdoc|adoc|rst|txt)\z|(\A|/)(docs?|guides)/|(\A|/)(LICENSE|CHANGELOG|README)[^/]*\z}i
+ASSETS = /\.(png|jpe?g|gif|webp|avif|svg|ico|mp4|mov|webm|mp3|wav|woff2?|ttf|otf|eot|pdf)\z/i
+CONFIG = %r{
+  (\A|/)(\.github|\.circleci|\.buildkite|\.devcontainer|bin|script|scripts)/ |
+  (\A|/)(Gemfile|Rakefile|Procfile[^/]*|Dockerfile[^/]*|Makefile|Brewfile|Caddyfile|[^/]+\.gemspec|package\.json|tsconfig[^/]*\.json|go\.mod|Cargo\.toml|pyproject\.toml)\z |
+  \.(ya?ml|toml|ini|json|env[^/]*|example|sample|lock)\z |
+  (\A|/)\.[^/]+\z |
+  (\A|/)[^/]*\.config\.[a-z]+\z
+}x
+
+def kind(path, binary)
+  return "generated" if path.match?(GENERATED)
+  return "assets" if binary || path.match?(ASSETS)
+  return "migrations" if path.match?(MIGRATIONS)
+  return "tests" if path.match?(TESTS)
+  return "docs" if path.match?(DOCS)
+  return "config" if path.match?(CONFIG)
+  "code"
+end
+
+base, head = ARGV.reject { |arg| arg.start_with?("--") }
+abort "usage: line-counts <base> [<head>] [--files]" unless base
+head ||= "HEAD"
+out = IO.popen(["git", "diff", "--numstat", "-z", "-M", "#{base}...#{head}"], &:read)
+abort "git diff failed" unless $?.success?
+
+# With -z, a line is "added\tdeleted\tpath\0", or "added\tdeleted\t\0old\0new\0" for a rename.
+fields = out.split("\0")
+files = []
+until fields.empty?
+  added, deleted, path = fields.shift.split("\t", 3)
+  if path.nil? || path.empty?
+    fields.shift
+    path = fields.shift
+  end
+  binary = added == "-"
+  files << [path, kind(path, binary), binary ? 0 : added.to_i, binary ? 0 : deleted.to_i]
+end
+
+totals = Hash.new { |h, k| h[k] = {added: 0, deleted: 0, files: 0} }
+files.each do |_, k, added, deleted|
+  totals[k][:added] += added
+  totals[k][:deleted] += deleted
+  totals[k][:files] += 1
+end
+
+parts = KINDS.filter_map do |key, label|
+  next unless totals.key?(key)
+  t = totals[key]
+  if key == "assets"
+    "#{label} #{t[:files]} file#{"s" unless t[:files] == 1}"
+  else
+    counts = ["+#{t[:added]}"]
+    counts << "−#{t[:deleted]}" if t[:deleted] > 0
+    "#{label} #{counts.join(" ")}"
+  end
+end
+
+puts parts.empty? ? "**Size:** no changes" : "**Size:** #{parts.join(" · ")}"
+
+if ARGV.include?("--files")
+  puts
+  files.sort_by { |path, k| [KINDS.keys.index(k), path] }.each do |path, k, added, deleted|
+    puts "#{k.ljust(10)} +#{added} −#{deleted}  #{path}"
+  end
+end
