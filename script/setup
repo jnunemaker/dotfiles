@@ -576,7 +576,7 @@ fi
 # Symlink each managed dotfile into ~/, moving anything already there aside.
 for file in *; do
   # Skip scripts and text files
-  echo $file | egrep -q '(^script$|^claude$|^codex$|^ghostty$|^preferred-mic$|^mise$|^skills$|^ssh$|^t3$|\.txt$|\.md|\.json$)' && continue
+  echo $file | egrep -q '(^script$|^claude$|^codex$|^ghostty$|^preferred-mic$|^mise$|^nurb$|^skills$|^ssh$|^t3$|\.txt$|\.md|\.json$)' && continue
 
   symlink_config "$PWD/$file" "$HOME/.$file" "$file"
 done
@@ -610,6 +610,7 @@ if ! grep -qxF '@~/.codex/AGENTS.md' "$claude_md" 2>/dev/null; then
 fi
 symlink_config "$PWD/ghostty/config" "$HOME/.config/ghostty/config" "ghostty-config"
 symlink_config "$PWD/mise/config.toml" "$HOME/.config/mise/config.toml" "mise-config.toml"
+symlink_config "$PWD/nurb/config.toml" "$HOME/.config/nurb/config.toml" "nurb-config.toml"
 
 # pstack's per-role model choices. Claude Code loads every rule in
 # ~/.claude/rules/ into each session. Re-run /pstack:setup-pstack to change it.

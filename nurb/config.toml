@@ -1,0 +1,7 @@
+# nurb's printer settings for every project on this Mac. Setup links this file
+# to ~/.config/nurb/config.toml. A printer.toml in a project wins over this.
+#
+# The printer is a Creality K2 Combo (from Costco). nurb ships no plain K2
+# profile, so use the K2 Plus profile and set the K2's 260mm build volume.
+profile = "creality_k2_plus"
+bed = [260.0, 260.0, 260.0]

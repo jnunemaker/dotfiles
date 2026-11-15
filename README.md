@@ -129,6 +129,11 @@ present. Global versions live in `mise/config.toml`, which setup links to
 `~/.tool-versions` is moved to the backup so it cannot override them. Projects
 still pick their own versions from `.tool-versions` or `.ruby-version`.
 
+nurb's printer settings live in `nurb/config.toml`, which setup links to
+`~/.config/nurb/config.toml`. It uses nurb's K2 Plus profile with the Creality
+K2's 260mm bed, since nurb has no plain K2 profile. A project's `printer.toml`
+still wins over it.
+
 T3 Code's settings live in `t3/settings.json` (server settings such as the
 default model and enabled providers) and `t3/client-settings.json` (interface
 preferences), and shortcuts live in `t3/keybindings.json`. Cmd+T opens the
