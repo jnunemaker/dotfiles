@@ -21,7 +21,8 @@ GENERATED = %r{
   (\A|/)(Gemfile\.lock|yarn\.lock|package-lock\.json|pnpm-lock\.yaml|bun\.lockb?|go\.sum|Cargo\.lock|poetry\.lock|composer\.lock)\z |
   (\A|/)db/([a-z_]+_)?(schema\.rb|structure\.sql)\z |
   (\A|/)(vendor|node_modules|\.yarn)/ | (\A|/)\.pnp\.[a-z]+\z |
-  \.min\.(js|css)\z | \.map\z | \.snap\z
+  \.min\.(js|css)\z | \.map\z | \.snap\z |
+  (\A|/)public/(.+/)?assets/
 }x
 MIGRATIONS = %r{(\A|/)db/([a-z_]+_)?migrate/|(\A|/)migrations?/}
 TESTS = %r{
