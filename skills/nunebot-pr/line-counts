@@ -26,7 +26,7 @@ GENERATED = %r{
 }x
 MIGRATIONS = %r{(\A|/)db/([a-z_]+_)?migrate/|(\A|/)migrations?/}
 TESTS = %r{
-  (\A|/)(spec|specs|test|tests|__tests__|__mocks__|e2e|features)/ |
+  (\A|/)(spec|specs|test|tests|__tests__|__mocks__|e2e)/ | \Afeatures/ |
   (_spec|_test|\.test|\.spec)\.[a-z]+\z | (\A|/)test_[^/]+\.py\z
 }x
 DOCS = %r{\.(md|mdx|markdown|rdoc|adoc|rst|txt)\z|(\A|/)(docs?|guides)/|(\A|/)(LICENSE|CHANGELOG|README)[^/]*\z}i
