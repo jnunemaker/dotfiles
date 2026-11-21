@@ -60,4 +60,4 @@ Use this Markdown list, not a code block:
 - **Production:** what you checked and what you saw.
 - **John:** steps left for me, or "nothing".
 
-Then say whether this session is safe to archive.
+Then say whether this session is safe to archive, and stop. Archive it only if I asked you to in my own words; running this skill, or asking you to merge, doesn't count.
