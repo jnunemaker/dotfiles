@@ -328,20 +328,35 @@ if ! codex mcp get helpscout &>/dev/null; then
   codex mcp add helpscout --url "$helpscout_mcp_url"
 fi
 
-# Add Userlist's hosted MCP server to Claude Code and Codex, for Flipper
-# Cloud's newsletters and broadcasts. It signs in with OAuth, so no API token is
-# stored here. As with Help Scout, Codex's sign-in runs visibly.
+# Add Userlist's hosted MCP server to Claude Code and Codex, for newsletters and
+# broadcasts. It signs in with OAuth, so no API token is stored here. Each
+# sign-in grants a single Userlist project, so there is one server per project;
+# pick the matching project when each sign-in asks. As with Honeybadger, Codex's
+# sign-in runs visibly. The single userlist server from before is removed first.
 userlist_mcp_url="https://mcp.userlist.com"
 
-if ! claude_has_mcp userlist; then
-  quietly "Adding Userlist MCP server to Claude Code" \
-    claude mcp add --scope user --transport http userlist "$userlist_mcp_url"
+if claude_has_mcp userlist; then
+  quietly "Removing old Userlist MCP server from Claude Code" \
+    claude mcp remove --scope user userlist
 fi
 
-if ! codex mcp get userlist &>/dev/null; then
-  echo "Sign in to Userlist for Codex's userlist server"
-  codex mcp add userlist --url "$userlist_mcp_url"
+if codex mcp get userlist &>/dev/null; then
+  quietly "Removing old Userlist MCP server from Codex" codex mcp remove userlist
 fi
+
+for project in speakerdeck flippercloud fireside; do
+  server="userlist-$project"
+
+  if ! claude_has_mcp "$server"; then
+    quietly "Adding Userlist MCP server $server to Claude Code" \
+      claude mcp add --scope user --transport http "$server" "$userlist_mcp_url"
+  fi
+
+  if ! codex mcp get "$server" &>/dev/null; then
+    echo "Sign in to Userlist for Codex's $server server"
+    codex mcp add "$server" --url "$userlist_mcp_url"
+  fi
+done
 
 # Add Flare's hosted MCP server to Claude Code and Codex. It signs in with OAuth,
 # so no API token is stored here. It replaces the local flare-cli stdio server
