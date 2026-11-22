@@ -328,6 +328,21 @@ if ! codex mcp get helpscout &>/dev/null; then
   codex mcp add helpscout --url "$helpscout_mcp_url"
 fi
 
+# Add Userlist's hosted MCP server to Claude Code and Codex, for Flipper
+# Cloud's newsletters and broadcasts. It signs in with OAuth, so no API token is
+# stored here. As with Help Scout, Codex's sign-in runs visibly.
+userlist_mcp_url="https://mcp.userlist.com"
+
+if ! claude_has_mcp userlist; then
+  quietly "Adding Userlist MCP server to Claude Code" \
+    claude mcp add --scope user --transport http userlist "$userlist_mcp_url"
+fi
+
+if ! codex mcp get userlist &>/dev/null; then
+  echo "Sign in to Userlist for Codex's userlist server"
+  codex mcp add userlist --url "$userlist_mcp_url"
+fi
+
 # Add Flare's hosted MCP server to Claude Code and Codex. It signs in with OAuth,
 # so no API token is stored here. It replaces the local flare-cli stdio server
 # that was set up by hand before, so remove that first. As with Help Scout,
