@@ -44,11 +44,13 @@ Decide on each finding: fix it if it's legitimate, reject it with a reason if it
 
 Do at most 3 rounds of:
 
-1. Commit the fixes as one commit and note its SHA.
+1. Commit the fixes as one commit, rerun the focused tests, and note its SHA.
 2. Have the other model review only that commit, never the whole change again.
-   - **In Claude Code:** `codex review --commit <sha>`.
+   - **In Claude Code:** `codex review --commit <sha>`. Run it in the foreground and keep only its final message; run in the background, its output is lost.
    - **In Codex:** not `$claude-code review`, which always sends the whole branch. Write a temporary prompt file outside the repo asking for a review of this diff only, with findings labelled `[P1]`, `[P2]`, `[P3]` or `NO_FINDINGS`, followed by the output of `git show <sha>`. Then run `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 ~/.codex/skills/gstack/bin/gstack-claude-code --user-invoked --cwd "$(git rev-parse --show-toplevel)" --access none --timeout-ms 600000 < <prompt-file>` and read `result` from the JSON it prints. If it fails, the review didn't happen, so the status is `BLOCKED`.
 3. Decide on each finding as in step 4. If nothing is legitimate, go to step 6.
+
+If a fix round makes the change bigger instead of smaller, shrink it: drop the part that keeps drawing findings rather than patching it again.
 
 If the third review still has legitimate findings, stop. Commit nothing else, record the open findings, and go to step 9 with status `GAVE_UP`. Chasing zero findings is how small changes turn into 3,000 line PRs.
 
