@@ -165,6 +165,11 @@ export BUNDLER_EDITOR='zed --new'
 export GIT_EDITOR=vi
 export HOMEBREW_NO_AUTO_UPDATE=1
 
+# Turn off telemetry (T3 Code reads these from the login shell at startup)
+export T3CODE_TELEMETRY_ENABLED=false
+export DISABLE_TELEMETRY=1
+export DO_NOT_TRACK=1
+
 function on_ruby_change() {
   find app lib config -type f | cat - <(find test spec -name '*.rb') | entr -c -r $@
 }
